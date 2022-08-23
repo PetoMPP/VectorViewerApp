@@ -1,0 +1,48 @@
+﻿using Autofac;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using VectorViewerLibrary.DataReading;
+using VectorViewerUI;
+using VectorViewerUI.Views;
+
+namespace VectorViewerApp
+{
+    public class ContainerBuilder
+    {
+        public static IContainer Build()
+        {
+            var builder = new Autofac.ContainerBuilder();
+
+            builder.RegisterType<MainView>();
+
+            builder.RegisterType<EditorView>();
+
+            builder.RegisterType<GraphicsRenderer>();
+
+            builder.RegisterType<DataProvider>()
+                .As<IDataProvider>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<JsonFileParser>()
+                .Keyed<IFileParser>("JSON")
+                .InstancePerLifetimeScope();
+
+            builder.Register(CreateJsonSerializerSettings)
+                .SingleInstance();
+
+            return builder.Build();
+        }
+
+        private static JsonSerializerSettings CreateJsonSerializerSettings(IComponentContext ctx)
+        {
+            return new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy { OverrideSpecifiedNames = false }
+                }
+            };
+        }
+    }
+}
