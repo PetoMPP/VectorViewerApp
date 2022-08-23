@@ -31,7 +31,9 @@ namespace VectorViewerUI.Views
             _graphicsRendererFactory = graphicsRendererFactory;
 
             InitializeComponent();
-            displayPictureBox.Image = new Bitmap(displayPictureBox.Width, displayPictureBox.Height);
+            displayPictureBox.Image = new Bitmap(
+                displayPictureBox.ClientSize.Width, displayPictureBox.ClientSize.Height);
+
             _renderer = _graphicsRendererFactory(displayPictureBox.Image);
             _renderer.Settings.Font = new Font(Font.FontFamily, 7);
             _renderer.PropertyChanged += Renderer_PropertyChanged;
@@ -42,7 +44,9 @@ namespace VectorViewerUI.Views
 
         public void UpdateViewport()
         {
-            displayPictureBox.Image = new Bitmap(displayPictureBox.Width, displayPictureBox.Height);
+            displayPictureBox.Image = new Bitmap(
+                displayPictureBox.ClientSize.Width, displayPictureBox.ClientSize.Height);
+
             _renderer.Canvas = displayPictureBox.Image;
 
             viewportLabel.Text = string.Format(
