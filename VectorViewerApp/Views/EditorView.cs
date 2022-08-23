@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Globalization;
+using System.Numerics;
 using VectorViewerLibrary.ViewModels;
 
 namespace VectorViewerUI.Views
@@ -20,6 +21,9 @@ namespace VectorViewerUI.Views
         private readonly IList<IShapeViewModel> _shapes;
         private readonly Func<Image, GraphicsRenderer> _graphicsRendererFactory;
         private readonly GraphicsRenderer _renderer;
+
+        private Point _lastMouseLocation;
+        private bool _moving;
 
         public PictureBox DisplayPictureBox => displayPictureBox;
 
@@ -133,6 +137,35 @@ namespace VectorViewerUI.Views
             _renderer.Settings.BackgroundColor = ColorDialog.Color;
             colorChangeLabel.BackColor = ColorDialog.Color;
             displayPictureBox.BackColor = ColorDialog.Color;
+        }
+
+        private void DisplayPictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            _moving = true;
+            Cursor = Cursors.SizeAll;
+            _lastMouseLocation = e.Location;
+        }
+
+        private void DisplayPictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_moving)
+                return;
+
+            _renderer.OriginOffset += new Vector2(
+                e.X - _lastMouseLocation.X, e.Y - _lastMouseLocation.Y);
+            _lastMouseLocation = e.Location;
+        }
+
+        private void DisplayPictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            _moving = false;
+            Cursor = Cursors.Default;
+        }
+
+        private void DisplayPictureBox_MouseLeave(object sender, EventArgs e)
+        {
+            _moving = false;
+            Cursor = Cursors.Default;
         }
     }
 }

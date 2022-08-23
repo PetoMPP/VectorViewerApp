@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
+using System.Numerics;
 using VectorViewerLibrary.Extensions;
 using VectorViewerLibrary.ViewModels;
 
@@ -12,6 +13,7 @@ namespace VectorViewerUI
         private float _zoom = 1;
         private IShapeViewModel? _shape;
         private Image _canvas;
+        private Vector2 _originOffset;
 
         public delegate void RenderingCompleteEventHandler(object? sender, EventArgs eventArgs);
 
@@ -35,6 +37,9 @@ namespace VectorViewerUI
             set
             {
                 _shape = value;
+                _originOffset = Vector2.Zero;
+                _origin = GetOrigin();
+                CalculateZoom();
                 PropertyChanged?.Invoke(
                     this, new PropertyChangedEventArgs(nameof(Shape)));
             }
@@ -50,6 +55,18 @@ namespace VectorViewerUI
                 _origin = GetOrigin();
                 PropertyChanged?.Invoke(
                     this, new PropertyChangedEventArgs(nameof(Canvas)));
+            }
+        }
+
+        public Vector2 OriginOffset
+        {
+            get => _originOffset;
+            set
+            {
+                _originOffset = value;
+                _origin = GetOrigin();
+                PropertyChanged?.Invoke(
+                    this, new PropertyChangedEventArgs(nameof(OriginOffset)));
             }
         }
 
@@ -76,7 +93,6 @@ namespace VectorViewerUI
         private void Render()
         {
             _graphics.SmoothingMode = Settings.SmoothingMode;
-            CalculateZoom();
             RenderBackground();
             RenderAxes();
 
@@ -177,7 +193,9 @@ namespace VectorViewerUI
 
         private PointF GetOrigin()
         {
-            return new PointF(Viewport.Width / 2, Viewport.Height / 2);
+            return new PointF(
+                (Viewport.Width / 2) + OriginOffset.X,
+                (Viewport.Height / 2) + OriginOffset.Y);
         }
 
         private void RenderAxes()
