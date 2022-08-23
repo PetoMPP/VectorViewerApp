@@ -318,6 +318,10 @@
             this.displayPictureBox.Size = new System.Drawing.Size(569, 348);
             this.displayPictureBox.TabIndex = 0;
             this.displayPictureBox.TabStop = false;
+            this.displayPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DisplayPictureBox_MouseDown);
+            this.displayPictureBox.MouseLeave += new System.EventHandler(this.DisplayPictureBox_MouseLeave);
+            this.displayPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DisplayPictureBox_MouseMove);
+            this.displayPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DisplayPictureBox_MouseUp);
             // 
             // EditorView
             // 
