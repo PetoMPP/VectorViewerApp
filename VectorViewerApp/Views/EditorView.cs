@@ -10,6 +10,7 @@ namespace VectorViewerUI.Views
     {
         private const string ZoomLabelTextBase = "Zoom: {0} %";
         private const string ViewportLabelTextBase = "Viewport: {0} x {1}";
+        private const string CursorLocationLabelTextBase = "X: {0}  Y: {1}";
 
         private static readonly ColorDialog ColorDialog = new()
         {
@@ -148,6 +149,10 @@ namespace VectorViewerUI.Views
 
         private void DisplayPictureBox_MouseMove(object sender, MouseEventArgs e)
         {
+            var location = _renderer.GetCoordinatesAtPoint(e.Location);
+            cursorLocationLabel.Text = string.Format(
+                CursorLocationLabelTextBase, location.X, location.Y);
+
             if (!_moving)
                 return;
 
@@ -164,6 +169,9 @@ namespace VectorViewerUI.Views
 
         private void DisplayPictureBox_MouseLeave(object sender, EventArgs e)
         {
+            cursorLocationLabel.Text = String.Format(
+                CursorLocationLabelTextBase, "-", "-");
+
             _moving = false;
             Cursor = Cursors.Default;
         }

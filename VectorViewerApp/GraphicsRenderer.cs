@@ -84,10 +84,17 @@ namespace VectorViewerUI
             _origin = GetOrigin();
 
             Settings.PropertyChanged += (_, _) => Render();
-            PropertyChanged += (_, e) => { if (e.PropertyName != nameof(Zoom)) { Render(); } };
+            PropertyChanged += (_, e) => Render();
 
             RenderBackground();
             RenderAxes();
+        }
+
+        public PointF GetCoordinatesAtPoint(Point location)
+        {
+            var x = (location.X - _origin.X) / Zoom;
+            var y = -((location.Y - _origin.Y) / Zoom);
+            return new PointF(x, y);
         }
 
         private void Render()
@@ -130,11 +137,13 @@ namespace VectorViewerUI
                     Settings.LineThickness / 2);
 
             var zoom = MathF.Min(
-                Viewport.Width / 2 / MathF.Max(_origin.X - boundsRectangle.Left, _origin.X - boundsRectangle.Right),
-                Viewport.Height / 2 / MathF.Max(_origin.Y - boundsRectangle.Top, _origin.Y - boundsRectangle.Bottom));
+                Viewport.Width / 2 / MathF.Max(
+                    _origin.X - boundsRectangle.Left, _origin.X - boundsRectangle.Right),
+                Viewport.Height / 2 / MathF.Max(
+                    _origin.Y - boundsRectangle.Top, _origin.Y - boundsRectangle.Bottom));
 
             zoom *= 1f - Settings.AutoZoomPadding;
-            Zoom = zoom;
+            _zoom = zoom;
         }
 
         private void RenderCurvedShape(ICurvedShapeViewModel shape)
@@ -157,7 +166,7 @@ namespace VectorViewerUI
                 return;
             }
 
-            var pen = new Pen(color, Settings.LineThickness * Zoom);
+            var pen = new Pen(color, Settings.LineThickness);
             _graphics.DrawEllipse(pen, boundsRectangle);
         }
 
@@ -167,7 +176,7 @@ namespace VectorViewerUI
                 ? Color.FromArgb(byte.MaxValue, shape.Color)
                 : shape.Color;
 
-            var pen = new Pen(color, Settings.LineThickness * Zoom);
+            var pen = new Pen(color, Settings.LineThickness);
             var points = shape.Points.TransformPoints(_origin, Zoom);
 
             switch (points.Length)
@@ -229,24 +238,27 @@ namespace VectorViewerUI
         {
             var brush = new SolidBrush(Color.DimGray);
 
+            var localViewPort = new RectangleF(Viewport.ToVector4() / Zoom);
+
             // Origin
             _graphics.DrawString(
                 "0", Settings.Font, brush, new PointF(_origin.X, _origin.Y));
 
-            var segment = MathF.Min(Viewport.Width / 15, Viewport.Height / 15);
+            var segment = MathF.Min(localViewPort.Width / 5, localViewPort.Height / 5);
+
 
             // X axis
-            var unit = 0.001f;
-            while (unit * 10 < segment)
-                unit *= 10;
+            var unit = 1;
+            while (unit * 5 < segment)
+                unit *= 5;
 
-            var segmentLenght = (int)(MathF.Ceiling(segment / unit) * unit);
+            var segmentLenght = unit * Zoom;
 
             var segmentNumber = 1;
             var point = new PointF(_origin.X + segmentLenght, _origin.Y);
             while (point.X < Viewport.Width)
             {
-                DrawXAxisSegment(brush, segmentLenght, segmentNumber, point);
+                DrawXAxisSegment(brush, unit, segmentNumber, point);
                 point = new PointF(point.X + segmentLenght, point.Y);
                 segmentNumber++;
             }
@@ -255,7 +267,7 @@ namespace VectorViewerUI
             point = new PointF(_origin.X - segmentLenght, _origin.Y);
             while (point.X > Viewport.X)
             {
-                DrawXAxisSegment(brush, segmentLenght, segmentNumber, point);
+                DrawXAxisSegment(brush, unit, segmentNumber, point);
                 point = new PointF(point.X - segmentLenght, point.Y);
                 segmentNumber--;
             }
@@ -265,7 +277,7 @@ namespace VectorViewerUI
             point = new PointF(_origin.X, _origin.Y + segmentLenght);
             while (point.Y < Viewport.Height)
             {
-                DrawYAxisSegment(brush, segmentLenght, segmentNumber, point);
+                DrawYAxisSegment(brush, unit, segmentNumber, point);
                 point = new PointF(point.X, point.Y + segmentLenght);
                 segmentNumber++;
             }
@@ -274,13 +286,14 @@ namespace VectorViewerUI
             point = new PointF(_origin.X, _origin.Y - segmentLenght);
             while (point.Y > Viewport.Y)
             {
-                DrawYAxisSegment(brush, segmentLenght, segmentNumber, point);
+                DrawYAxisSegment(brush, unit, segmentNumber, point);
                 point = new PointF(point.X, point.Y - segmentLenght);
                 segmentNumber--;
             }
         }
 
-        private void DrawYAxisSegment(SolidBrush brush, float segmentLenght, int segmentNumber, PointF point)
+        private void DrawYAxisSegment(
+            SolidBrush brush, int unit, int segmentNumber, PointF point)
         {
             var pen = new Pen(brush);
 
@@ -289,7 +302,7 @@ namespace VectorViewerUI
                 new PointF(point.X + 5, point.Y),
                 new PointF(point.X - 5, point.Y));
 
-            var text = MathF.Round(segmentLenght * -segmentNumber / Zoom, 0).ToString();
+            var text = MathF.Round(unit * -segmentNumber, 3).ToString();
             var textSize = _graphics.MeasureString(text, Settings.Font);
 
             _graphics.DrawString(
@@ -301,7 +314,8 @@ namespace VectorViewerUI
                     point.Y - (textSize.Height / 2)));
         }
 
-        private void DrawXAxisSegment(Brush brush, float segmentLenght, int segmentNumber, PointF point)
+        private void DrawXAxisSegment(
+            Brush brush, int unit, int segmentNumber, PointF point)
         {
             var pen = new Pen(brush);
 
@@ -310,14 +324,11 @@ namespace VectorViewerUI
                 new PointF(point.X, point.Y + 5),
                 new PointF(point.X, point.Y - 5));
 
-            var text = MathF.Round(segmentLenght * segmentNumber / Zoom, 0).ToString();
+            var text = MathF.Round(unit * segmentNumber, 3).ToString();
             var textSize = _graphics.MeasureString(text, Settings.Font);
 
             _graphics.DrawString(
-                text,
-                Settings.Font,
-                brush,
-                new PointF(
+                text, Settings.Font, brush, new PointF(
                     point.X - (textSize.Width / 2),
                     point.Y + 5));
         }
