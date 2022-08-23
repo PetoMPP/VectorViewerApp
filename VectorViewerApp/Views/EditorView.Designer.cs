@@ -31,6 +31,7 @@
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.viewportLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.zoomLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.cursorLocationLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.dataPanel = new System.Windows.Forms.Panel();
             this.shapesListBox = new System.Windows.Forms.ListBox();
             this.settingsPanel = new System.Windows.Forms.Panel();
@@ -65,7 +66,8 @@
             this.statusStrip.BackColor = System.Drawing.Color.BurlyWood;
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.viewportLabel,
-            this.zoomLabel});
+            this.zoomLabel,
+            this.cursorLocationLabel});
             this.statusStrip.Location = new System.Drawing.Point(0, 378);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(799, 22);
@@ -83,6 +85,12 @@
             this.zoomLabel.Name = "zoomLabel";
             this.zoomLabel.Size = new System.Drawing.Size(72, 17);
             this.zoomLabel.Text = "Zoom: {0} %";
+            // 
+            // cursorLocationLabel
+            // 
+            this.cursorLocationLabel.Name = "cursorLocationLabel";
+            this.cursorLocationLabel.Size = new System.Drawing.Size(67, 17);
+            this.cursorLocationLabel.Text = "X: {0}  Y: {1}";
             // 
             // dataPanel
             // 
@@ -377,5 +385,6 @@
         private Panel backgorundColorPanel;
         private Label colorChangeLabel;
         private Label backgroundColorLabel;
+        private ToolStripStatusLabel cursorLocationLabel;
     }
 }
