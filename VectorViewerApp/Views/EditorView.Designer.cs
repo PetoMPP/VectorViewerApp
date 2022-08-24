@@ -327,6 +327,7 @@
             this.displayPictureBox.TabIndex = 0;
             this.displayPictureBox.TabStop = false;
             this.displayPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DisplayPictureBox_MouseDown);
+            this.displayPictureBox.MouseEnter += new System.EventHandler(this.DisplayPictureBox_MouseEnter);
             this.displayPictureBox.MouseLeave += new System.EventHandler(this.DisplayPictureBox_MouseLeave);
             this.displayPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DisplayPictureBox_MouseMove);
             this.displayPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DisplayPictureBox_MouseUp);

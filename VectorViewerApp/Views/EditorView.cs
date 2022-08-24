@@ -36,6 +36,7 @@ namespace VectorViewerUI.Views
             _graphicsRendererFactory = graphicsRendererFactory;
 
             InitializeComponent();
+            displayPictureBox.MouseWheel += DisplayPictureBox_MouseWheel;
             displayPictureBox.Image = new Bitmap(
                 displayPictureBox.ClientSize.Width, displayPictureBox.ClientSize.Height);
 
@@ -169,11 +170,24 @@ namespace VectorViewerUI.Views
 
         private void DisplayPictureBox_MouseLeave(object sender, EventArgs e)
         {
-            cursorLocationLabel.Text = String.Format(
+            cursorLocationLabel.Text = string.Format(
                 CursorLocationLabelTextBase, "-", "-");
 
             _moving = false;
             Cursor = Cursors.Default;
+        }
+
+        private void DisplayPictureBox_MouseEnter(object sender, EventArgs e)
+        {
+            displayPictureBox.Focus();
+        }
+
+        private void DisplayPictureBox_MouseWheel(object? sender, MouseEventArgs e)
+        {
+            if (e.Delta > 0)
+                _renderer.ZoomIn(e.Location);
+            else
+                _renderer.ZoomOut(e.Location);
         }
     }
 }
