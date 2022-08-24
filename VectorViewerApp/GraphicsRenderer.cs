@@ -97,6 +97,36 @@ namespace VectorViewerUI
             return new PointF(x, y);
         }
 
+        public void ZoomIn(Point location)
+        {
+            var startLocation = GetCoordinatesAtPoint(location);
+            Zoom *= 1.1f;
+            var newPoint = GetPointAtCoordinates(startLocation);
+            OriginOffset += new Vector2(
+                location.X - newPoint.X,
+                location.Y - newPoint.Y);
+        }
+
+        public void ZoomOut(Point location)
+        {
+            if (Zoom < 0.0001f)
+                return;
+
+            var startLocation = GetCoordinatesAtPoint(location);
+            Zoom *= 0.9f;
+            var newPoint = GetPointAtCoordinates(startLocation);
+            OriginOffset += new Vector2(
+                location.X - newPoint.X,
+                location.Y - newPoint.Y);
+        }
+
+        private Point GetPointAtCoordinates(PointF location)
+        {
+            var x = _origin.X + location.X * Zoom;
+            var y = _origin.Y + (-location.Y * Zoom);
+            return new Point((int)x, (int)y);
+        }
+
         private void Render()
         {
             _graphics.SmoothingMode = Settings.SmoothingMode;
@@ -224,19 +254,25 @@ namespace VectorViewerUI
             var state = _graphics.Save();
             _graphics.SmoothingMode = SmoothingMode.None;
 
-            var pen = new Pen(Color.DimGray, 1);
+            var color = Color.FromArgb(
+                byte.MaxValue,
+                (byte)(Settings.BackgroundColor.R + 127),
+                (byte)(Settings.BackgroundColor.G + 127),
+                (byte)(Settings.BackgroundColor.B + 127));
+
+            var pen = new Pen(color, 1);
             _graphics.DrawLines(pen, yAxisPoints);
             _graphics.DrawLines(pen, xAxisPoints);
 
             if (Settings.DisplayScale)
-                RenderScale();
+                RenderScale(color);
 
             _graphics.Restore(state);
         }
 
-        private void RenderScale()
+        private void RenderScale(Color color)
         {
-            var brush = new SolidBrush(Color.DimGray);
+            var brush = new SolidBrush(color);
 
             var localViewPort = new RectangleF(Viewport.ToVector4() / Zoom);
 
