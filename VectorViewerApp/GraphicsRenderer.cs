@@ -132,7 +132,10 @@ namespace VectorViewerUI
         {
             _graphics.SmoothingMode = Settings.SmoothingMode;
             RenderBackground();
-            RenderAxes();
+
+            if (Settings.DisplayScale)
+                RenderAxes();
+
             RenderShapes();
 
             RenderingComplete?.Invoke(this, new EventArgs());
@@ -273,8 +276,7 @@ namespace VectorViewerUI
             _graphics.DrawLines(pen, yAxisPoints);
             _graphics.DrawLines(pen, xAxisPoints);
 
-            if (Settings.DisplayScale)
-                RenderScale(color);
+            RenderScale(color);
 
             _graphics.Restore(state);
         }
