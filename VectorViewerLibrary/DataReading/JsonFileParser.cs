@@ -29,28 +29,42 @@ namespace VectorViewerLibrary.DataReading
 
             foreach (JObject shapeObject in jArray)
             {
-                var points = new List<string>();
-
-                foreach (var name in _pointNames)
-                {
-                    if (!shapeObject.TryGetValue(name, out var token))
-                        break;
-
-                    points.Add(
-                        token.Value<string>()
-                        ?? throw new InvalidOperationException("Invalid JSON"));
-                }
-                var shapeModel = shapeObject.ToObject<ShapeModel>(
-                    JsonSerializer.Create(_jsonSerializerSetting));
-
-                if (shapeModel is null)
-                    throw new InvalidOperationException("Invalid JSON");
-
-                shapeModel.Points = points.ToArray();
+                var shapeModel = GetShapeModel(shapeObject);
                 result.Add(shapeModel);
             }
 
             return result;
+        }
+
+        private ShapeModel GetShapeModel(JObject shapeObject)
+        {
+            var points = new List<string>();
+            var innerShapes = new List<ShapeModel>();
+
+            if (shapeObject.TryGetValue("shapes", out var shapeToken) &&
+                shapeToken is JArray shapesArray)
+                foreach (JObject shape in shapesArray.Where(t => t is JObject))
+                    innerShapes.Add(GetShapeModel(shape));
+
+            foreach (var name in _pointNames)
+            {
+                if (!shapeObject.TryGetValue(name, out var token))
+                    break;
+
+                points.Add(
+                    token.Value<string>()
+                    ?? throw new InvalidOperationException("Invalid JSON"));
+            }
+
+            var shapeModel = shapeObject.ToObject<ShapeModel>(
+                JsonSerializer.Create(_jsonSerializerSetting));
+
+            if (shapeModel is null)
+                throw new InvalidOperationException("Invalid JSON");
+
+            shapeModel.Points = points.ToArray();
+            shapeModel.Shapes = innerShapes.ToArray();
+            return shapeModel;
         }
 
         private static string[] GetPointNames()

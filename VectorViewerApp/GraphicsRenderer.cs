@@ -11,7 +11,7 @@ namespace VectorViewerUI
         private Graphics _graphics;
         private PointF _origin;
         private float _zoom = 1;
-        private IShapeViewModel? _shape;
+        private IEnumerable<IShapeViewModel> _shapes;
         private Image _canvas;
         private Vector2 _originOffset;
 
@@ -31,17 +31,17 @@ namespace VectorViewerUI
             }
         }
 
-        public IShapeViewModel? Shape
+        public IEnumerable<IShapeViewModel> Shapes
         {
-            get => _shape;
+            get => _shapes;
             set
             {
-                _shape = value;
+                _shapes = value;
                 _originOffset = Vector2.Zero;
                 _origin = GetOrigin();
                 CalculateZoom();
                 PropertyChanged?.Invoke(
-                    this, new PropertyChangedEventArgs(nameof(Shape)));
+                    this, new PropertyChangedEventArgs(nameof(Shapes)));
             }
         }
 
@@ -79,6 +79,7 @@ namespace VectorViewerUI
         {
             graphicsRendererSettings ??= new GraphicsRendererSettings();
             Settings = graphicsRendererSettings;
+            _shapes = Array.Empty<IShapeViewModel>();
             _graphics = Graphics.FromImage(image);
             _canvas = image;
             _origin = GetOrigin();
@@ -132,48 +133,56 @@ namespace VectorViewerUI
             _graphics.SmoothingMode = Settings.SmoothingMode;
             RenderBackground();
             RenderAxes();
-
-            if (Shape is null)
-            {
-                RenderingComplete?.Invoke(this, new EventArgs());
-                return;
-            }
-
-
-            if (Shape is ILinearShapeViewModel linearShape)
-                RenderLinearShape(linearShape);
-
-            else if (Shape is ICurvedShapeViewModel curvedShape)
-                RenderCurvedShape(curvedShape);
-
-            else
-                throw new InvalidOperationException();
+            RenderShapes();
 
             RenderingComplete?.Invoke(this, new EventArgs());
         }
 
-        private void CalculateZoom()
+        private void RenderShapes()
         {
-            if (Shape is null)
+            if (!Shapes.Any())
                 return;
 
-            var boundsRectangle = Shape.Points
-                .TransformPoints(_origin, 1)
-                .GetBoundsRectangle();
+            foreach (var shape in Shapes)
+            {
+                if (shape is ILinearShapeViewModel linearShape)
+                    RenderLinearShape(linearShape);
+                else if (shape is ICurvedShapeViewModel curvedShape)
+                    RenderCurvedShape(curvedShape);
+                else
+                    throw new InvalidOperationException();
+            }
+        }
 
-            if (Shape.Filled != true)
-                boundsRectangle.Inflate(
-                    Settings.LineThickness / 2,
-                    Settings.LineThickness / 2);
+        private void CalculateZoom()
+        {
+            if (!Shapes.Any())
+                return;
 
-            var zoom = MathF.Min(
-                Viewport.Width / 2 / MathF.Max(
-                    _origin.X - boundsRectangle.Left, _origin.X - boundsRectangle.Right),
-                Viewport.Height / 2 / MathF.Max(
-                    _origin.Y - boundsRectangle.Top, _origin.Y - boundsRectangle.Bottom));
+            var zooms = new List<float>();
 
-            zoom *= 1f - Settings.AutoZoomPadding;
-            _zoom = zoom;
+            foreach (var shape in Shapes)
+            {
+                var boundsRectangle = shape.Points
+                    .TransformPoints(_origin, 1)
+                    .GetBoundsRectangle();
+
+                if (shape.Filled != true)
+                    boundsRectangle.Inflate(
+                        Settings.LineThickness / 2,
+                        Settings.LineThickness / 2);
+
+                var zoom = MathF.Min(
+                    Viewport.Width / 2 / MathF.Max(
+                        MathF.Abs(_origin.X - boundsRectangle.Left), MathF.Abs(_origin.X - boundsRectangle.Right)),
+                    Viewport.Height / 2 / MathF.Max(
+                        MathF.Abs(_origin.Y - boundsRectangle.Top), MathF.Abs(_origin.Y - boundsRectangle.Bottom)));
+
+                zoom *= 1f - Settings.AutoZoomPadding;
+                zooms.Add(zoom);
+            }
+
+            _zoom = zooms.Min();
         }
 
         private void RenderCurvedShape(ICurvedShapeViewModel shape)

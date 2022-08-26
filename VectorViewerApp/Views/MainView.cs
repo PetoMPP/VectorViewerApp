@@ -6,12 +6,12 @@ namespace VectorViewerUI.Views
     public partial class MainView : Form
     {
         private readonly IDataProvider _dataProvider;
-        private readonly Func<IEnumerable<IShapeViewModel>, EditorView> _editorViewFactory;
+        private readonly Func<IEnumerable<IViewModel>, EditorView> _editorViewFactory;
         private EditorView? _editorView;
 
         public MainView(
             IDataProvider dataProvider,
-            Func<IEnumerable<IShapeViewModel>, EditorView> editorViewFactory)
+            Func<IEnumerable<IViewModel>, EditorView> editorViewFactory)
         {
             _dataProvider = dataProvider;
             _editorViewFactory = editorViewFactory;

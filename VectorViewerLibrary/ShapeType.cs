@@ -4,6 +4,7 @@
     {
         Line,
         Circle,
-        Triangle
+        Triangle,
+        Multi
     }
 }
