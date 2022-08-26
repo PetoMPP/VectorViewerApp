@@ -19,7 +19,7 @@ namespace VectorViewerUI.Views
             FullOpen = true
         };
 
-        private readonly IList<IShapeViewModel> _shapes;
+        private readonly IList<IViewModel> _shapes;
         private readonly Func<Image, GraphicsRenderer> _graphicsRendererFactory;
         private readonly GraphicsRenderer _renderer;
 
@@ -29,7 +29,7 @@ namespace VectorViewerUI.Views
         public PictureBox DisplayPictureBox => displayPictureBox;
 
         public EditorView(
-            IEnumerable<IShapeViewModel> shapes,
+            IEnumerable<IViewModel> shapes,
             Func<Image, GraphicsRenderer> graphicsRendererFactory)
         {
             _shapes = shapes.Reverse().ToList();
@@ -86,7 +86,15 @@ namespace VectorViewerUI.Views
 
         private void ShapesListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _renderer.Shape = (IShapeViewModel?)shapesListBox.SelectedItem;
+            var shapes = new List<IShapeViewModel>();
+            var item = shapesListBox.SelectedItem;
+
+            if (item is IShapeViewModel shapeViewModel)
+                shapes.Add(shapeViewModel);
+            if (item is IMultiShapeViewModel multiViewModel)
+                shapes.AddRange(multiViewModel.InnerShapes);
+
+            _renderer.Shapes = shapes;
         }
 
         private void AliasingCheckBox_CheckedChanged(object sender, EventArgs e)

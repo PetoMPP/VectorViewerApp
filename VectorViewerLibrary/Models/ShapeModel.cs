@@ -8,5 +8,6 @@
         public float? Radius { get; set; }
         public bool? Filled { get; set; }
         public string? Color { get; set; }
+        public ShapeModel[]? Shapes { get; set; }
     }
 }

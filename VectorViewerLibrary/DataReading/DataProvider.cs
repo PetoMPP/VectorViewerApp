@@ -6,7 +6,7 @@ namespace VectorViewerLibrary.DataReading
 {
     public interface IDataProvider
     {
-        Task<IEnumerable<IShapeViewModel>> GetShapesFromFile(
+        Task<IEnumerable<IViewModel>> GetShapesFromFile(
             string path, CancellationToken cancellationToken);
     }
 
@@ -19,7 +19,7 @@ namespace VectorViewerLibrary.DataReading
             _fileParsers = fileParsers;
         }
 
-        public async Task<IEnumerable<IShapeViewModel>> GetShapesFromFile(
+        public async Task<IEnumerable<IViewModel>> GetShapesFromFile(
             string path, CancellationToken cancellationToken)
         {
             var parser = _fileParsers[Path.GetExtension(path)[1..].ToUpper()];
