@@ -11,6 +11,7 @@ namespace VectorViewerLibrary.ViewModels
     public class LinearShapeViewModel : ILinearShapeViewModel
     {
         public PointF[] Points { get; }
+        public LineType LineType { get; }
         public bool? Filled { get; }
         public Color Color { get; }
         public string DisplayName { get; }
@@ -23,14 +24,10 @@ namespace VectorViewerLibrary.ViewModels
             if (model.Color is null)
                 throw new InvalidOperationException("Missing Color in ShapeModel");
 
-            var pointCount = model.Points.Length;
-            Points = new PointF[pointCount];
-
-            for (int i = 0; i < pointCount; i++)
-                Points[i] = model.Points[i].ConvertToPointF();
-
+            Points = model.Points;
+            LineType = model.LineType;
             Filled = model.Filled;
-            Color = model.Color.ConvertToColor();
+            Color = model.Color ?? Color.Black;
             DisplayName = model.Type.ToString();
         }
     }
