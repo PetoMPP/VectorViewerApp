@@ -5,6 +5,7 @@
         Line,
         Circle,
         Triangle,
-        Multi
+        Multi,
+        Curve
     }
 }

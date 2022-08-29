@@ -22,7 +22,7 @@ namespace VectorViewerUI.Views
         {
             var dialog = new OpenFileDialog
             {
-                Filter = "JSON config files (*.json)|*.json",
+                Filter = "JSON config files (*.json)|*.json|DXF files (*.dxf)|*.dxf",
                 RestoreDirectory = true
             };
 

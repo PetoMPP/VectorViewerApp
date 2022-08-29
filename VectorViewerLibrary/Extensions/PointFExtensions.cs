@@ -5,6 +5,10 @@ namespace VectorViewerLibrary.Extensions
 {
     public static class PointFExtensions
     {
+        public static float ConvertToRadians(this float angle)
+        {
+            return (float)(Math.PI / 180 * angle);
+        }
 
         public static PointF[] TransformPoints(
             this PointF[] points,
@@ -26,20 +30,6 @@ namespace VectorViewerLibrary.Extensions
             return new RectangleF(
                 new PointF(xMin, yMin),
                 new SizeF(xMax - xMin, yMax - yMin));
-        }
-
-        public static PointF ConvertToPointF(this string input)
-        {
-            var values = input.Split(';');
-            return new PointF(
-                float.Parse(
-                    values[0].Trim().Replace(',', '.'),
-                    NumberStyles.Number,
-                    CultureInfo.InvariantCulture),
-                -float.Parse(
-                    values[1].Trim().Replace(',', '.'),
-                    NumberStyles.Number,
-                    CultureInfo.InvariantCulture));
         }
     }
 }

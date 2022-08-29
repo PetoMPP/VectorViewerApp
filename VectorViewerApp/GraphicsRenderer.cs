@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Numerics;
+using VectorViewerLibrary;
 using VectorViewerLibrary.Extensions;
 using VectorViewerLibrary.ViewModels;
 
@@ -8,6 +9,11 @@ namespace VectorViewerUI
 {
     public class GraphicsRenderer : INotifyPropertyChanged
     {
+        private static readonly float[] ContinuousLinePattern = { 1 };
+        private static readonly float[] DashedLinePattern = { 10, 10 };
+        private static readonly float[] DotDashedLinePattern = { 10, 9, 1, 9 };
+        private static readonly float[] HiddenLinePattern = { 20, 10 };
+
         private Graphics _graphics;
         private PointF _origin;
         private float _zoom = 1;
@@ -130,15 +136,20 @@ namespace VectorViewerUI
 
         private void Render()
         {
-            _graphics.SmoothingMode = Settings.SmoothingMode;
-            RenderBackground();
+            try
+            {
+                _graphics.SmoothingMode = Settings.SmoothingMode;
+                RenderBackground();
 
-            if (Settings.DisplayScale)
-                RenderAxes();
+                if (Settings.DisplayScale)
+                    RenderAxes();
 
-            RenderShapes();
-
-            RenderingComplete?.Invoke(this, new EventArgs());
+                RenderShapes();
+            }
+            finally
+            {
+                RenderingComplete?.Invoke(this, new EventArgs());
+            }
         }
 
         private void RenderShapes()
@@ -197,6 +208,19 @@ namespace VectorViewerUI
                 ? Color.FromArgb(byte.MaxValue, shape.Color)
                 : shape.Color;
 
+            var pen = GetPen(shape, color);
+
+            if (shape.ArcStart is not null && shape.ArcEnd is not null)
+            {
+                var arcStart = (float)shape.ArcStart;
+                var arcEnd = (float)shape.ArcEnd;
+                _graphics.DrawArc(
+                    pen,
+                    shape.Points.TransformPoints(_origin, Zoom).GetBoundsRectangle(),
+                    arcStart,
+                    arcEnd);
+                return;
+            }
             var boundsRectangle = shape.Points
                 .TransformPoints(_origin, Zoom)
                 .GetBoundsRectangle();
@@ -207,9 +231,21 @@ namespace VectorViewerUI
                 _graphics.FillEllipse(brush, boundsRectangle);
                 return;
             }
-
-            var pen = new Pen(color, Settings.LineThickness);
             _graphics.DrawEllipse(pen, boundsRectangle);
+        }
+
+        private Pen GetPen(IShapeViewModel shape, Color color)
+        {
+            return new Pen(color, Settings.LineThickness)
+            {
+                DashPattern = shape.LineType switch
+                {
+                    LineType.Dashed => DashedLinePattern,
+                    LineType.DotDashed => DotDashedLinePattern,
+                    LineType.Hidden => HiddenLinePattern,
+                    _ => ContinuousLinePattern
+                }
+            };
         }
 
         private void RenderLinearShape(ILinearShapeViewModel shape)
@@ -218,7 +254,8 @@ namespace VectorViewerUI
                 ? Color.FromArgb(byte.MaxValue, shape.Color)
                 : shape.Color;
 
-            var pen = new Pen(color, Settings.LineThickness);
+            var pen = GetPen(shape, color);
+
             var points = shape.Points.TransformPoints(_origin, Zoom);
 
             switch (points.Length)
@@ -292,7 +329,6 @@ namespace VectorViewerUI
                 "0", Settings.Font, brush, new PointF(_origin.X, _origin.Y));
 
             var segment = MathF.Min(localViewPort.Width / 5, localViewPort.Height / 5);
-
 
             // X axis
             var unit = 1;

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Drawing;
 using VectorViewerLibrary.Models;
 
 namespace VectorViewerLibrary.DataReading
@@ -8,11 +9,13 @@ namespace VectorViewerLibrary.DataReading
     {
         private readonly JsonSerializerSettings _jsonSerializerSetting;
         private readonly string[] _pointNames;
+        private readonly JsonSerializer _jsonSerializer;
 
         public JsonFileParser(JsonSerializerSettings jsonSerializerSetting)
         {
             _pointNames = GetPointNames();
             _jsonSerializerSetting = jsonSerializerSetting;
+            _jsonSerializer = JsonSerializer.Create(_jsonSerializerSetting);
         }
 
         public async Task<IEnumerable<ShapeModel>> GetModelsFromFile(
@@ -38,7 +41,6 @@ namespace VectorViewerLibrary.DataReading
 
         private ShapeModel GetShapeModel(JObject shapeObject)
         {
-            var points = new List<string>();
             var innerShapes = new List<ShapeModel>();
 
             if (shapeObject.TryGetValue("shapes", out var shapeToken) &&
@@ -46,23 +48,22 @@ namespace VectorViewerLibrary.DataReading
                 foreach (JObject shape in shapesArray.Where(t => t is JObject))
                     innerShapes.Add(GetShapeModel(shape));
 
+            var jPoints = new JArray();
+
             foreach (var name in _pointNames)
             {
                 if (!shapeObject.TryGetValue(name, out var token))
                     break;
-
-                points.Add(
-                    token.Value<string>()
-                    ?? throw new InvalidOperationException("Invalid JSON"));
+                jPoints.Add(token);
             }
 
-            var shapeModel = shapeObject.ToObject<ShapeModel>(
-                JsonSerializer.Create(_jsonSerializerSetting));
+            shapeObject.Add("points", jPoints);
+
+            var shapeModel = shapeObject.ToObject<ShapeModel>(_jsonSerializer);
 
             if (shapeModel is null)
                 throw new InvalidOperationException("Invalid JSON");
 
-            shapeModel.Points = points.ToArray();
             shapeModel.Shapes = innerShapes.ToArray();
             return shapeModel;
         }

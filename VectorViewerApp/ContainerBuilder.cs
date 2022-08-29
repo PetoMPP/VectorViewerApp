@@ -2,8 +2,10 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using VectorViewerLibrary.DataReading;
+using VectorViewerLibrary.DataReading.Converters;
 using VectorViewerUI;
 using VectorViewerUI.Views;
+using ColorConverter = VectorViewerLibrary.DataReading.Converters.ColorConverter;
 
 namespace VectorViewerApp
 {
@@ -27,6 +29,10 @@ namespace VectorViewerApp
                 .Keyed<IFileParser>("JSON")
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<DxfFileParser>()
+                .Keyed<IFileParser>("DXF")
+                .InstancePerLifetimeScope();
+
             builder.Register(CreateJsonSerializerSettings)
                 .SingleInstance();
 
@@ -41,6 +47,11 @@ namespace VectorViewerApp
                 ContractResolver = new DefaultContractResolver
                 {
                     NamingStrategy = new SnakeCaseNamingStrategy { OverrideSpecifiedNames = false }
+                },
+                Converters = new List<JsonConverter>
+                {
+                    new ColorConverter(),
+                    new PointFConverter()
                 }
             };
         }
