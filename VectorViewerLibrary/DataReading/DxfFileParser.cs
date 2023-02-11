@@ -1,6 +1,5 @@
 ﻿using IxMilia.Dxf;
 using IxMilia.Dxf.Entities;
-using IxMilia.Dxf.Objects;
 using System.Drawing;
 using VectorViewerLibrary.Models;
 
@@ -8,140 +7,124 @@ namespace VectorViewerLibrary.DataReading
 {
     public class DxfFileParser : IFileParser
     {
+#if DEBUG
+        private readonly List<Type> _reportedTypes;
+
+        public DxfFileParser()
+        {
+            _reportedTypes = new List<Type>();
+        }
+#endif
+
         public async Task<IEnumerable<ShapeModel>> GetModelsFromFile(
             string path, CancellationToken cancellationToken)
         {
             return await Task.Run(() => ParseDxf(path));
         }
 
-        private static List<ShapeModel> ParseDxf(string path)
+        private List<ShapeModel> ParseDxf(string path)
         {
             var dxf = DxfFile.Load(path);
 
-            var model = new ShapeModel { Type = ShapeType.Multi };
-            var shapes = new List<ShapeModel>();
-
-            shapes.AddRange(GetLines(dxf));
-            //shapes.AddRange(GetDimensions(dxf));
-            shapes.AddRange(GetArcs(dxf));
-            shapes.AddRange(GetCircles(dxf));
-
-            model.Shapes = shapes.ToArray();
-
-            return new List<ShapeModel> { model };
-        }
-
-        private static IEnumerable<ShapeModel> GetCircles(DxfFile dxf)
-        {
-            var modelShapes = new List<ShapeModel>();
-
-            foreach (var circles in dxf.Entities
-                .Where(e => e.EntityType == DxfEntityType.Circle)
-                .GroupBy(l => l.Layer))
+            return new List<ShapeModel>
             {
-                var layer = dxf.Layers.First(l => l.Name == circles.Key);
-                foreach (DxfCircle circle in circles)
+                new ShapeModel
                 {
-                    var color = GetDxfEntityColor(circle, layer);
-                    modelShapes.Add(new ShapeModel
-                    {
-                        Type = ShapeType.Circle,
-                        Center = new PointF((float)circle.Center.X, -(float)circle.Center.Y),
-                        Radius = (float)circle.Radius,
-                        Color = color
-                    });
+                    Type = ShapeType.Multi,
+                    Shapes = GetShapes(dxf).ToArray()
                 }
-            }
-
-            return modelShapes;
+            };
         }
 
-        private static IEnumerable<ShapeModel> GetArcs(DxfFile dxf)
+        private IEnumerable<ShapeModel> GetShapes(DxfFile dxf)
         {
-            var modelShapes = new List<ShapeModel>();
-
-            foreach (var arcs in dxf.Entities
-                .Where(e => e.EntityType == DxfEntityType.Arc)
-                .GroupBy(l => l.Layer))
+            foreach (IGrouping<string, DxfEntity>? entities in dxf.Entities.GroupBy(e => e.Layer))
             {
-                var layer = dxf.Layers.First(l => l.Name == arcs.Key);
-                foreach (DxfArc arc in arcs)
+                var layer = dxf.Layers.First(l => l.Name == entities.Key);
+                foreach (var entity in entities)
                 {
-                    var color = GetDxfEntityColor(arc, layer);
-
-                    modelShapes.Add(new ShapeModel
+                    var color = GetDxfEntityColor(entity, layer);
+                    var shape = entity switch
                     {
-                        Type = ShapeType.Curve,
-                        ArcStart = (float?)arc.StartAngle,
-                        ArcEnd = (float?)arc.EndAngle,
-                        Center = new PointF((float)arc.Center.X, -(float)arc.Center.Y),
-                        Radius = (float)arc.Radius,
-                        Color = color
-                    });
-                }
-            }
-
-            return modelShapes;
-        }
-
-        //private static IEnumerable<ShapeModel> GetDimensions(DxfDocument dxf)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        private static IEnumerable<ShapeModel> GetLines(DxfFile dxf)
-        {
-            var modelShapes = new List<ShapeModel>();
-
-            foreach (var lines in dxf.Entities
-                .Where(e => e.EntityType == DxfEntityType.Line)
-                .GroupBy(l => l.Layer))
-            {
-                var layer = dxf.Layers.First(l => l.Name == lines.Key);
-
-                foreach (DxfLine line in lines)
-                {
-                    var color = GetDxfEntityColor(line, layer);
-
-                    var lineTypeRaw = line.LineTypeName == "BYLAYER"
-                        ? layer.LineTypeName
-                        : line.LineTypeName;
-
-                    var lineType = lineTypeRaw.ToLower() switch
-                    {
-                        "continuous" => LineType.Continuous,
-                        "center" => LineType.Dashed,
-                        "hidden" => LineType.Hidden,
-                        _ => throw new Exception()
+                        DxfLine line => GetShapeFromLine(layer, line, color),
+                        DxfArc arc => GetShapeFromArc(arc, color),
+                        DxfCircle circle => GetShapeFromCircle(circle, color),
+                        _ => null
                     };
+                    if (shape is not null)
+                        yield return shape;
 
-                    modelShapes.Add(new ShapeModel
-                    {
-                        Type = ShapeType.Line,
-                        LineType = lineType,
-                        Color = color,
-                        Points = new PointF[]
-                        {
+#if DEBUG
+                    if (!_reportedTypes.Contains(entity.GetType()))
+                        _reportedTypes.Add(entity.GetType()); 
+#endif
+                }
+            }
+#if DEBUG
+            Console.WriteLine($"Not parsed types:{Environment.NewLine}" +
+        string.Join(Environment.NewLine, _reportedTypes.Select(t => t.Name)));
+#endif
+        }
+
+        private static ShapeModel GetShapeFromCircle(DxfCircle circle, Color color)
+        {
+            return new ShapeModel
+            {
+                Type = ShapeType.Circle,
+                Center = new PointF((float)circle.Center.X, -(float)circle.Center.Y),
+                Radius = (float)circle.Radius,
+                Color = color
+            };
+        }
+
+        private static ShapeModel GetShapeFromArc(DxfArc arc, Color color)
+        {
+            return new ShapeModel
+            {
+                Type = ShapeType.Curve,
+                ArcStart = (float?)arc.StartAngle,
+                ArcEnd = (float?)arc.EndAngle,
+                Center = new PointF((float)arc.Center.X, -(float)arc.Center.Y),
+                Radius = (float)arc.Radius,
+                Color = color
+            };
+        }
+
+        private static ShapeModel GetShapeFromLine(DxfLayer layer, DxfLine line, Color color)
+        {
+            var lineTypeRaw = line.LineTypeName == "BYLAYER"
+                                    ? layer.LineTypeName
+                                    : line.LineTypeName;
+
+            var lineType = lineTypeRaw.ToLower() switch
+            {
+                "continuous" => LineType.Continuous,
+                "center" => LineType.Dashed,
+                "hidden" => LineType.Hidden,
+                _ => throw new Exception()
+            };
+
+            return new ShapeModel
+            {
+                Type = ShapeType.Line,
+                LineType = lineType,
+                Color = color,
+                Points = new PointF[]
+                {
                             new PointF((float)line.P1.X, -(float)line.P1.Y),
                             new PointF((float)line.P2.X, -(float)line.P2.Y)
-                        }
-                    });
                 }
-            }
-
-            return modelShapes;
+            };
         }
 
         private static Color GetDxfEntityColor(DxfEntity entity, DxfLayer layer)
         {
-            var colour = entity.Color.IsByLayer
+            var color = entity.Color.IsByLayer
                 ? layer.Color
                 : entity.Color;
 
-            var channels = BitConverter.GetBytes(colour.ToRGB());
-            var color = Color.FromArgb(channels[2], channels[1], channels[0]);
-            //var color = $"{byte.MaxValue - entity.Transparency}; {rgbColor.R}; {rgbColor.G}; {rgbColor.B}";
-            return color;
+            var channels = BitConverter.GetBytes(color.ToRGB());
+            return Color.FromArgb(channels[2], channels[1], channels[0]);
         }
     }
 }
