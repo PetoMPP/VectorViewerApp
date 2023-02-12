@@ -12,13 +12,12 @@ namespace VectorViewerLibrary.ViewModels
     public class CurvedShapeViewModel : ICurvedShapeViewModel
     {
         public LineType LineType { get; }
-        public PointF[] Points { get; }
-        public float? ArcStart { get; }
-        public float? ArcEnd { get; }
-        public bool? Filled { get; }
+        public PointF[] Points { get; private set; }
+        public float? ArcStart { get; private set; }
+        public float? ArcEnd { get; private set; }
+        public bool? Filled { get; private set; }
         public Color Color { get; }
         public string DisplayName { get; }
-
 
         public CurvedShapeViewModel(ShapeModel model)
         {
@@ -44,7 +43,7 @@ namespace VectorViewerLibrary.ViewModels
             if (model.ArcStart is not null && model.ArcEnd is not null)
             {
                 ArcStart = model.ArcStart;
-                ArcEnd = model.ArcStart < model.ArcEnd 
+                ArcEnd = model.ArcStart < model.ArcEnd
                     ? model.ArcEnd - model.ArcStart
                     : 360 - (model.ArcStart - model.ArcEnd);
             }
@@ -53,6 +52,17 @@ namespace VectorViewerLibrary.ViewModels
             Filled = model.Filled;
             Color = model.Color ?? Color.Black;
             DisplayName = model.Type.ToString();
+        }
+
+        public void Scale(float factor)
+        {
+            Points = Points.Select(p => new PointF(p.X * factor, p.Y * factor)).ToArray();
+            if (ArcStart is not float start || ArcEnd is not float end)
+                return;
+
+            var diff = (end - start) * factor;
+            ArcStart = end - diff;
+            ArcEnd = start + diff;
         }
     }
 }

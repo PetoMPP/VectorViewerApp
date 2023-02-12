@@ -345,6 +345,7 @@
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "EditorView";
             this.Text = "EditorView";
+            this.Shown += new System.EventHandler(this.EditorView_Shown);
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.dataPanel.ResumeLayout(false);

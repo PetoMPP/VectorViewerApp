@@ -61,5 +61,11 @@ namespace VectorViewerUI.Views
             _editorView?.DisplayPictureBox.ResumeLayout();
             _editorView?.UpdateViewport();
         }
+
+        private void MainView_Shown(object sender, EventArgs e)
+        {
+            _editorView = _editorViewFactory(Array.Empty<IShapeViewModel>());
+            LoadFormToMainPanel(_editorView);
+        }
     }
 }

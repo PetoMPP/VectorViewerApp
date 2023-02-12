@@ -100,6 +100,7 @@
             this.MainMenuStrip = this.menuStrip;
             this.Name = "MainView";
             this.Text = "Vector Viewer";
+            this.Shown += new System.EventHandler(this.MainView_Shown);
             this.ResizeBegin += new System.EventHandler(this.MainView_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.MainView_ResizeEnd);
             this.menuStrip.ResumeLayout(false);

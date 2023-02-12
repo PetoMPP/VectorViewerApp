@@ -66,8 +66,7 @@ namespace VectorViewerUI.Views
 
         private void Renderer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(GraphicsRenderer.Zoom))
-                zoomLabel.Text = string.Format(ZoomLabelTextBase, _renderer.Zoom * 100);
+            zoomLabel.Text = string.Format(ZoomLabelTextBase, _renderer.Zoom * 100);
         }
 
         private void LoadDataToUI()
@@ -121,8 +120,10 @@ namespace VectorViewerUI.Views
                 NumberStyles.Integer,
                 CultureInfo.InvariantCulture,
                 out var padding))
+            {
                 return;
-            
+            }
+
             _renderer.Settings.AutoZoomPadding = padding / 100f;
         }
 
@@ -133,8 +134,10 @@ namespace VectorViewerUI.Views
                 NumberStyles.Number,
                 CultureInfo.InvariantCulture,
                 out var lineThickness))
+            {
                 return;
-            
+            }
+
             _renderer.Settings.LineThickness = lineThickness;
         }
 
@@ -197,5 +200,7 @@ namespace VectorViewerUI.Views
             else
                 _renderer.ZoomOut(e.Location);
         }
+
+        private void EditorView_Shown(object sender, EventArgs e) => UpdateViewport();
     }
 }

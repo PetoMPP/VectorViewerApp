@@ -23,7 +23,7 @@ namespace VectorViewerUI
 
         public delegate void RenderingCompleteEventHandler(object? sender, EventArgs eventArgs);
 
-        public event RenderingCompleteEventHandler? RenderingComplete;
+        public event EventHandler<EventArgs>? RenderingComplete;
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public float Zoom
@@ -91,10 +91,9 @@ namespace VectorViewerUI
             _origin = GetOrigin();
 
             Settings.PropertyChanged += (_, _) => Render();
-            PropertyChanged += (_, e) => Render();
+            PropertyChanged += (_, _) => Render();
 
-            RenderBackground();
-            RenderAxes();
+            Render();
         }
 
         public PointF GetCoordinatesAtPoint(Point location)
@@ -129,7 +128,7 @@ namespace VectorViewerUI
 
         private Point GetPointAtCoordinates(PointF location)
         {
-            var x = _origin.X + location.X * Zoom;
+            var x = _origin.X + (location.X * Zoom);
             var y = _origin.Y + (-location.Y * Zoom);
             return new Point((int)x, (int)y);
         }
@@ -148,7 +147,7 @@ namespace VectorViewerUI
             }
             finally
             {
-                RenderingComplete?.Invoke(this, new EventArgs());
+                RenderingComplete?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -158,6 +157,25 @@ namespace VectorViewerUI
                 return;
 
             foreach (var shape in Shapes)
+            {
+                try
+                {
+                    RenderShape(shape);
+                }
+                catch (OutOfMemoryException)
+                {
+                    shape.Scale(0.99F);
+                    try
+                    {
+                        RenderShape(shape);
+                    }
+                    catch (OutOfMemoryException)
+                    {
+                    }
+                }
+            }
+
+            void RenderShape(IShapeViewModel shape)
             {
                 if (shape is ILinearShapeViewModel linearShape)
                     RenderLinearShape(linearShape);
@@ -182,9 +200,11 @@ namespace VectorViewerUI
                     .GetBoundsRectangle();
 
                 if (shape.Filled != true)
+                {
                     boundsRectangle.Inflate(
                         Settings.LineThickness / 2,
                         Settings.LineThickness / 2);
+                }
 
                 var zoom = MathF.Min(
                     Viewport.Width / 2 / MathF.Max(
@@ -208,7 +228,11 @@ namespace VectorViewerUI
                 ? Color.FromArgb(byte.MaxValue, shape.Color)
                 : shape.Color;
 
-            var pen = GetPen(shape, color);
+            using var pen = GetPen(shape, color);
+
+            var boundsRectangle = shape.Points
+                .TransformPoints(_origin, Zoom)
+                .GetBoundsRectangle();
 
             if (shape.ArcStart is not null && shape.ArcEnd is not null)
             {
@@ -216,18 +240,15 @@ namespace VectorViewerUI
                 var arcEnd = (float)shape.ArcEnd;
                 _graphics.DrawArc(
                     pen,
-                    shape.Points.TransformPoints(_origin, Zoom).GetBoundsRectangle(),
+                    boundsRectangle,
                     arcStart,
                     arcEnd);
                 return;
             }
-            var boundsRectangle = shape.Points
-                .TransformPoints(_origin, Zoom)
-                .GetBoundsRectangle();
 
             if (shape.Filled == true)
             {
-                var brush = new SolidBrush(color);
+                using var brush = new SolidBrush(color);
                 _graphics.FillEllipse(brush, boundsRectangle);
                 return;
             }
@@ -254,7 +275,7 @@ namespace VectorViewerUI
                 ? Color.FromArgb(byte.MaxValue, shape.Color)
                 : shape.Color;
 
-            var pen = GetPen(shape, color);
+            using var pen = GetPen(shape, color);
 
             var points = shape.Points.TransformPoints(_origin, Zoom);
 
@@ -266,7 +287,7 @@ namespace VectorViewerUI
                 case > 2:
                     if (shape.Filled == true)
                     {
-                        var brush = new SolidBrush(color);
+                        using var brush = new SolidBrush(color);
                         _graphics.FillPolygon(brush, points);
                         break;
                     }
@@ -309,7 +330,7 @@ namespace VectorViewerUI
                 (byte)(Settings.BackgroundColor.G + 127),
                 (byte)(Settings.BackgroundColor.B + 127));
 
-            var pen = new Pen(color, 1);
+            using var pen = new Pen(color, 1);
             _graphics.DrawLines(pen, yAxisPoints);
             _graphics.DrawLines(pen, xAxisPoints);
 
@@ -320,7 +341,7 @@ namespace VectorViewerUI
 
         private void RenderScale(Color color)
         {
-            var brush = new SolidBrush(color);
+            using var brush = new SolidBrush(color);
 
             var localViewPort = new RectangleF(Viewport.ToVector4() / Zoom);
 
@@ -378,7 +399,7 @@ namespace VectorViewerUI
         private void DrawYAxisSegment(
             SolidBrush brush, int unit, int segmentNumber, PointF point)
         {
-            var pen = new Pen(brush);
+            using var pen = new Pen(brush);
 
             _graphics.DrawLine(
                 pen,
@@ -400,7 +421,7 @@ namespace VectorViewerUI
         private void DrawXAxisSegment(
             Brush brush, int unit, int segmentNumber, PointF point)
         {
-            var pen = new Pen(brush);
+            using var pen = new Pen(brush);
 
             _graphics.DrawLine(
                 pen,
