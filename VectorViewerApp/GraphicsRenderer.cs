@@ -234,15 +234,9 @@ namespace VectorViewerUI
                 .TransformPoints(_origin, Zoom)
                 .GetBoundsRectangle();
 
-            if (shape.ArcStart is not null && shape.ArcEnd is not null)
+            if (shape.ArcStart is float start && shape.ArcEnd is float end)
             {
-                var arcStart = (float)shape.ArcStart;
-                var arcEnd = (float)shape.ArcEnd;
-                _graphics.DrawArc(
-                    pen,
-                    boundsRectangle,
-                    arcStart,
-                    arcEnd);
+                _graphics.DrawArc(pen, boundsRectangle, start, end);
                 return;
             }
 

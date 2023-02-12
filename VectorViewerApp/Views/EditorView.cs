@@ -63,8 +63,13 @@ namespace VectorViewerUI.Views
         {
             _shapes = shapes.ToList();
             shapesListBox.DataSource = null;
+            InitializeShapesList();
+        }
+
+        private void InitializeShapesList()
+        {
             shapesListBox.DataSource = _shapes;
-            shapesListBox.DisplayMember = "DisplayName";
+            shapesListBox.DisplayMember = nameof(IViewModel.DisplayName);
             shapesListBox.SelectionMode = SelectionMode.One;
         }
 
@@ -86,10 +91,7 @@ namespace VectorViewerUI.Views
                 _renderer.Viewport.Height);
 
             zoomLabel.Text = string.Format(ZoomLabelTextBase, _renderer.Zoom * 100);
-
-            shapesListBox.DataSource = _shapes;
-            shapesListBox.DisplayMember = "DisplayName";
-            shapesListBox.SelectionMode = SelectionMode.One;
+            InitializeShapesList();
         }
 
         private void ShapesListBox_SelectedIndexChanged(object sender, EventArgs e)
