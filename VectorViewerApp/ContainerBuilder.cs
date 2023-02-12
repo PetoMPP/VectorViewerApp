@@ -9,7 +9,7 @@ using ColorConverter = VectorViewerLibrary.DataReading.Converters.ColorConverter
 
 namespace VectorViewerApp
 {
-    public class ContainerBuilder
+    public static class ContainerBuilder
     {
         public static IContainer Build()
         {

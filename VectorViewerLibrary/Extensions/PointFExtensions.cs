@@ -16,16 +16,16 @@ namespace VectorViewerLibrary.Extensions
             float zoom)
         {
             return points
-                .Select(p => new PointF(p.X * zoom + origin.X, p.Y * zoom + origin.Y))
+                .Select(p => new PointF((p.X * zoom) + origin.X, (p.Y * zoom) + origin.Y))
                 .ToArray();
         }
 
         public static RectangleF GetBoundsRectangle(this PointF[] points)
         {
-            var xMin = points.Select(p => p.X).Min();
-            var yMin = points.Select(p => p.Y).Min();
-            var xMax = points.Select(p => p.X).Max();
-            var yMax = points.Select(p => p.Y).Max();
+            var xMin = points.Min(p => p.X);
+            var yMin = points.Min(p => p.Y);
+            var xMax = points.Max(p => p.X);
+            var yMax = points.Max(p => p.Y);
 
             return new RectangleF(
                 new PointF(xMin, yMin),
