@@ -19,7 +19,7 @@ namespace VectorViewerUI.Views
             FullOpen = true
         };
 
-        private readonly IList<IViewModel> _shapes;
+        private IList<IViewModel> _shapes;
         private readonly Func<Image, GraphicsRenderer> _graphicsRendererFactory;
         private readonly GraphicsRenderer _renderer;
 
@@ -57,6 +57,15 @@ namespace VectorViewerUI.Views
 
             viewportLabel.Text = string.Format(
                 ViewportLabelTextBase, displayPictureBox.Width, displayPictureBox.Height);
+        }
+
+        public void ChangeShapesContext(IEnumerable<IViewModel> shapes)
+        {
+            _shapes = shapes.ToList();
+            shapesListBox.DataSource = null;
+            shapesListBox.DataSource = _shapes;
+            shapesListBox.DisplayMember = "DisplayName";
+            shapesListBox.SelectionMode = SelectionMode.One;
         }
 
         private void Renderer_RenderingComplete(object? sender, EventArgs eventArgs)
