@@ -56,7 +56,7 @@ namespace VectorViewerLibrary.DataReading
 
 #if DEBUG
                     if (!_reportedTypes.Contains(entity.GetType()))
-                        _reportedTypes.Add(entity.GetType()); 
+                        _reportedTypes.Add(entity.GetType());
 #endif
                 }
             }

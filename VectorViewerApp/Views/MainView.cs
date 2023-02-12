@@ -32,8 +32,14 @@ namespace VectorViewerUI.Views
             var models = await _dataProvider
                 .GetShapesFromFile(dialog.FileName, CancellationToken.None);
 
-            _editorView = _editorViewFactory(models);
-            LoadFormToMainPanel(_editorView);
+            if (_editorView is null)
+            {
+                _editorView = _editorViewFactory(models);
+                LoadFormToMainPanel(_editorView);
+                return;
+            }
+
+            _editorView.ChangeShapesContext(models);
         }
 
         private void LoadFormToMainPanel(Form form)
@@ -60,6 +66,12 @@ namespace VectorViewerUI.Views
         {
             _editorView?.DisplayPictureBox.ResumeLayout();
             _editorView?.UpdateViewport();
+        }
+
+        private void MainView_Shown(object sender, EventArgs e)
+        {
+            _editorView = _editorViewFactory(Array.Empty<IShapeViewModel>());
+            LoadFormToMainPanel(_editorView);
         }
     }
 }

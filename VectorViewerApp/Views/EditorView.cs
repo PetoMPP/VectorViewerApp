@@ -19,7 +19,7 @@ namespace VectorViewerUI.Views
             FullOpen = true
         };
 
-        private readonly IList<IViewModel> _shapes;
+        private IList<IViewModel> _shapes;
         private readonly Func<Image, GraphicsRenderer> _graphicsRendererFactory;
         private readonly GraphicsRenderer _renderer;
 
@@ -59,6 +59,20 @@ namespace VectorViewerUI.Views
                 ViewportLabelTextBase, displayPictureBox.Width, displayPictureBox.Height);
         }
 
+        public void ChangeShapesContext(IEnumerable<IViewModel> shapes)
+        {
+            _shapes = shapes.ToList();
+            shapesListBox.DataSource = null;
+            InitializeShapesList();
+        }
+
+        private void InitializeShapesList()
+        {
+            shapesListBox.DataSource = _shapes;
+            shapesListBox.DisplayMember = nameof(IViewModel.DisplayName);
+            shapesListBox.SelectionMode = SelectionMode.One;
+        }
+
         private void Renderer_RenderingComplete(object? sender, EventArgs eventArgs)
         {
             displayPictureBox.Invalidate();
@@ -66,8 +80,7 @@ namespace VectorViewerUI.Views
 
         private void Renderer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(GraphicsRenderer.Zoom))
-                zoomLabel.Text = string.Format(ZoomLabelTextBase, _renderer.Zoom * 100);
+            zoomLabel.Text = string.Format(ZoomLabelTextBase, _renderer.Zoom * 100);
         }
 
         private void LoadDataToUI()
@@ -78,10 +91,7 @@ namespace VectorViewerUI.Views
                 _renderer.Viewport.Height);
 
             zoomLabel.Text = string.Format(ZoomLabelTextBase, _renderer.Zoom * 100);
-
-            shapesListBox.DataSource = _shapes;
-            shapesListBox.DisplayMember = "DisplayName";
-            shapesListBox.SelectionMode = SelectionMode.One;
+            InitializeShapesList();
         }
 
         private void ShapesListBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -121,8 +131,10 @@ namespace VectorViewerUI.Views
                 NumberStyles.Integer,
                 CultureInfo.InvariantCulture,
                 out var padding))
+            {
                 return;
-            
+            }
+
             _renderer.Settings.AutoZoomPadding = padding / 100f;
         }
 
@@ -133,8 +145,10 @@ namespace VectorViewerUI.Views
                 NumberStyles.Number,
                 CultureInfo.InvariantCulture,
                 out var lineThickness))
+            {
                 return;
-            
+            }
+
             _renderer.Settings.LineThickness = lineThickness;
         }
 
@@ -197,5 +211,7 @@ namespace VectorViewerUI.Views
             else
                 _renderer.ZoomOut(e.Location);
         }
+
+        private void EditorView_Shown(object sender, EventArgs e) => UpdateViewport();
     }
 }

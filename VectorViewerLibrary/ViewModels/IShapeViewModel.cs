@@ -9,5 +9,6 @@ namespace VectorViewerLibrary.ViewModels
         bool? Filled { get; }
         Color Color { get; }
         new string DisplayName { get; }
+        void Scale(float factor);
     }
 }

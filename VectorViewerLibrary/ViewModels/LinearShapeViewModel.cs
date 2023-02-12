@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using VectorViewerLibrary.Extensions;
 using VectorViewerLibrary.Models;
 
 namespace VectorViewerLibrary.ViewModels
@@ -10,9 +9,9 @@ namespace VectorViewerLibrary.ViewModels
 
     public class LinearShapeViewModel : ILinearShapeViewModel
     {
-        public PointF[] Points { get; }
+        public PointF[] Points { get; private set; }
         public LineType LineType { get; }
-        public bool? Filled { get; }
+        public bool? Filled { get; private set; }
         public Color Color { get; }
         public string DisplayName { get; }
 
@@ -29,6 +28,11 @@ namespace VectorViewerLibrary.ViewModels
             Filled = model.Filled;
             Color = model.Color ?? Color.Black;
             DisplayName = model.Type.ToString();
+        }
+
+        public void Scale(float factor)
+        {
+            Points = Points.Select(p => new PointF(p.X * factor, p.Y * factor)).ToArray();
         }
     }
 }

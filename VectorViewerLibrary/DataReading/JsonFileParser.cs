@@ -45,8 +45,10 @@ namespace VectorViewerLibrary.DataReading
 
             if (shapeObject.TryGetValue("shapes", out var shapeToken) &&
                 shapeToken is JArray shapesArray)
+            {
                 foreach (JObject shape in shapesArray.Where(t => t is JObject))
                     innerShapes.Add(GetShapeModel(shape));
+            }
 
             var jPoints = new JArray();
 
@@ -71,8 +73,8 @@ namespace VectorViewerLibrary.DataReading
         private static string[] GetPointNames()
         {
             // (int)'a' = 97; (int)'z' = 122;
-            var arrayStart = 97;
-            var arrayEnd = 123;
+            const int arrayStart = 97;
+            const int arrayEnd = 123;
             var result = new string[arrayEnd - arrayStart];
 
             for (int i = 97; i < 123; i++)
