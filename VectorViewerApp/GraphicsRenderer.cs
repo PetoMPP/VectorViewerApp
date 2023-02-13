@@ -14,12 +14,15 @@ namespace VectorViewerUI
         private static readonly float[] DotDashedLinePattern = { 10, 9, 1, 9 };
         private static readonly float[] HiddenLinePattern = { 20, 10 };
 
+        private readonly IList<IShapeViewModel> _highlightedShapes;
+
         private Graphics _graphics;
         private PointF _origin;
         private float _zoom = 1;
         private IEnumerable<IShapeViewModel> _shapes;
         private Image _canvas;
         private Vector2 _originOffset;
+        private IList<IShapeViewModel> _selectedShapes;
 
         public delegate void RenderingCompleteEventHandler(object? sender, EventArgs eventArgs);
 
@@ -76,6 +79,17 @@ namespace VectorViewerUI
             }
         }
 
+        public IList<IShapeViewModel> SelectedShapes
+        {
+            get => _selectedShapes;
+            private set
+            {
+                _selectedShapes = value;
+                PropertyChanged?.Invoke(
+                    this, new PropertyChangedEventArgs(nameof(SelectedShapes)));
+            }
+        }
+
         public GraphicsRendererSettings Settings { get; }
         public RectangleF Viewport => new(new PointF(0, 0), Canvas.Size);
 
@@ -89,6 +103,8 @@ namespace VectorViewerUI
             _graphics = Graphics.FromImage(image);
             _canvas = image;
             _origin = GetOrigin();
+            _highlightedShapes = new List<IShapeViewModel>();
+            _selectedShapes = new List<IShapeViewModel>();
 
             Settings.PropertyChanged += (_, _) => Render();
             PropertyChanged += (_, _) => Render();
@@ -96,10 +112,32 @@ namespace VectorViewerUI
             Render();
         }
 
-        public PointF GetCoordinatesAtPoint(Point location)
+        public void HighlightShapesAtPoint(Point location)
+        {
+            var point = GetCoordinatesAtPoint(location, false);
+            foreach (var shape in Shapes)
+            {
+                if (shape.IsPointOnShape(point))
+                {
+                    if (!_highlightedShapes.Contains(shape))
+                        _highlightedShapes.Add(shape);
+                }
+                else
+                {
+                    if (_highlightedShapes.Contains(shape))
+                        _highlightedShapes.Remove(shape);
+                }
+            }
+            Render();
+        }
+
+        public PointF GetCoordinatesAtPoint(Point location, bool invertY = true)
         {
             var x = (location.X - _origin.X) / Zoom;
-            var y = -((location.Y - _origin.Y) / Zoom);
+            var y = (location.Y - _origin.Y) / Zoom;
+            if (invertY)
+                y *= -1;
+
             return new PointF(x, y);
         }
 
@@ -199,7 +237,7 @@ namespace VectorViewerUI
                     .TransformPoints(_origin, 1)
                     .GetBoundsRectangle();
 
-                if (shape.Filled != true)
+                if (!shape.Filled)
                 {
                     boundsRectangle.Inflate(
                         Settings.LineThickness / 2,
@@ -224,10 +262,7 @@ namespace VectorViewerUI
             if (shape.Points.Length != 4)
                 throw new InvalidOperationException("Invalid count of Points");
 
-            var color = Settings.IgnoreTransparency
-                ? Color.FromArgb(byte.MaxValue, shape.Color)
-                : shape.Color;
-
+            var color = GetShapeColor(shape);
             using var pen = GetPen(shape, color);
 
             var boundsRectangle = shape.Points
@@ -240,13 +275,27 @@ namespace VectorViewerUI
                 return;
             }
 
-            if (shape.Filled == true)
+            if (shape.Filled)
             {
                 using var brush = new SolidBrush(color);
                 _graphics.FillEllipse(brush, boundsRectangle);
                 return;
             }
             _graphics.DrawEllipse(pen, boundsRectangle);
+        }
+
+        private Color GetShapeColor(IShapeViewModel shape)
+        {
+            var color = shape.Color;
+            if (_selectedShapes.Contains(shape))
+                color = Settings.SelectionColor;
+            else if (_highlightedShapes.Contains(shape))
+                color = Settings.HighlightColor;
+
+            if (Settings.IgnoreTransparency)
+                color = Color.FromArgb(byte.MaxValue, color);
+
+            return color;
         }
 
         private Pen GetPen(IShapeViewModel shape, Color color)
@@ -265,10 +314,7 @@ namespace VectorViewerUI
 
         private void RenderLinearShape(ILinearShapeViewModel shape)
         {
-            var color = Settings.IgnoreTransparency
-                ? Color.FromArgb(byte.MaxValue, shape.Color)
-                : shape.Color;
-
+            var color = GetShapeColor(shape);
             using var pen = GetPen(shape, color);
 
             var points = shape.Points.TransformPoints(_origin, Zoom);
@@ -279,7 +325,7 @@ namespace VectorViewerUI
                     _graphics.DrawLine(pen, points[0], points[1]);
                     break;
                 case > 2:
-                    if (shape.Filled == true)
+                    if (shape.Filled)
                     {
                         using var brush = new SolidBrush(color);
                         _graphics.FillPolygon(brush, points);

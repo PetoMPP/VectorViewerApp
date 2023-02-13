@@ -6,9 +6,11 @@ namespace VectorViewerLibrary.ViewModels
     {
         PointF[] Points { get; }
         LineType LineType { get; }
-        bool? Filled { get; }
+        bool Filled { get; }
         Color Color { get; }
         new string DisplayName { get; }
+
+        bool IsPointOnShape(PointF point, float tolerance = 0.25F);
         void Scale(float factor);
     }
 }

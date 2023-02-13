@@ -177,7 +177,10 @@ namespace VectorViewerUI.Views
                 CursorLocationLabelTextBase, location.X, location.Y);
 
             if (!_moving)
+            {
+                _renderer.HighlightShapesAtPoint(e.Location);
                 return;
+            }
 
             _renderer.OriginOffset += new Vector2(
                 e.X - _lastMouseLocation.X, e.Y - _lastMouseLocation.Y);

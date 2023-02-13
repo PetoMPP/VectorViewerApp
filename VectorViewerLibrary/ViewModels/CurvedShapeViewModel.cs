@@ -15,7 +15,7 @@ namespace VectorViewerLibrary.ViewModels
         public PointF[] Points { get; private set; }
         public float? ArcStart { get; private set; }
         public float? ArcEnd { get; private set; }
-        public bool? Filled { get; private set; }
+        public bool Filled { get; }
         public Color Color { get; }
         public string DisplayName { get; }
 
@@ -49,7 +49,7 @@ namespace VectorViewerLibrary.ViewModels
             }
 
             LineType = model.LineType;
-            Filled = model.Filled;
+            Filled = model.Filled ?? false;
             Color = model.Color ?? Color.Black;
             DisplayName = model.Type.ToString();
         }
@@ -63,6 +63,11 @@ namespace VectorViewerLibrary.ViewModels
             var diff = (end - start) * factor;
             ArcStart = end - diff;
             ArcEnd = start + diff;
+        }
+
+        public bool IsPointOnShape(PointF point, float tolerance = 0.25F)
+        {
+            return false;
         }
     }
 }
