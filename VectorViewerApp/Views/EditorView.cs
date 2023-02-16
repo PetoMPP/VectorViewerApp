@@ -25,6 +25,7 @@ namespace VectorViewerUI.Views
 
         private Point _lastMouseLocation;
         private bool _moving;
+        private Keys _buttonFlags;
 
         public PictureBox DisplayPictureBox => displayPictureBox;
 
@@ -165,9 +166,40 @@ namespace VectorViewerUI.Views
 
         private void DisplayPictureBox_MouseDown(object sender, MouseEventArgs e)
         {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    if (_buttonFlags == Keys.None)
+                    {
+                        _renderer.SelectHighlightedShapes(false);
+                        return;
+                    }
+
+                    if (_buttonFlags == Keys.Control)
+                    {
+                        _renderer.SelectHighlightedShapes(true);
+                        return;
+                    }
+
+                    if (_buttonFlags == (Keys.Control | Keys.Shift))
+                    {
+                        StartMoving(e.Location);
+                        return;
+                    }
+                    return;
+                case MouseButtons.Middle:
+                    StartMoving(e.Location);
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        private void StartMoving(Point location)
+        {
             _moving = true;
             Cursor = Cursors.SizeAll;
-            _lastMouseLocation = e.Location;
+            _lastMouseLocation = location;
         }
 
         private void DisplayPictureBox_MouseMove(object sender, MouseEventArgs e)
@@ -177,7 +209,10 @@ namespace VectorViewerUI.Views
                 CursorLocationLabelTextBase, location.X, location.Y);
 
             if (!_moving)
+            {
+                _renderer.HighlightShapesAtPoint(e.Location);
                 return;
+            }
 
             _renderer.OriginOffset += new Vector2(
                 e.X - _lastMouseLocation.X, e.Y - _lastMouseLocation.Y);
@@ -213,5 +248,15 @@ namespace VectorViewerUI.Views
         }
 
         private void EditorView_Shown(object sender, EventArgs e) => UpdateViewport();
+
+        private void EditorView_KeyDown(object sender, KeyEventArgs e)
+        {
+            _buttonFlags = e.Modifiers;
+        }
+
+        private void EditorView_KeyUp(object sender, KeyEventArgs e)
+        {
+            _buttonFlags = e.Modifiers;
+        }
     }
 }

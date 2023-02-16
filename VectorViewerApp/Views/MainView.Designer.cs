@@ -91,6 +91,7 @@
             // 
             // MainView
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
@@ -103,6 +104,8 @@
             this.Shown += new System.EventHandler(this.MainView_Shown);
             this.ResizeBegin += new System.EventHandler(this.MainView_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.MainView_ResizeEnd);
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainView_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainView_DragEnter);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             this.ResumeLayout(false);

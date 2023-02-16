@@ -64,6 +64,7 @@
             // statusStrip
             // 
             this.statusStrip.BackColor = System.Drawing.Color.BurlyWood;
+            this.statusStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.viewportLabel,
             this.zoomLabel,
@@ -311,7 +312,7 @@
             this.imagePanel.Location = new System.Drawing.Point(0, 0);
             this.imagePanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.imagePanel.Name = "imagePanel";
-            this.imagePanel.Padding = new System.Windows.Forms.Padding(15);
+            this.imagePanel.Padding = new System.Windows.Forms.Padding(15, 15, 15, 15);
             this.imagePanel.Size = new System.Drawing.Size(599, 378);
             this.imagePanel.TabIndex = 5;
             // 

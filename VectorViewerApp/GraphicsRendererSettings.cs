@@ -90,10 +90,9 @@ namespace VectorViewerUI
             }
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public Color HighlightColor => Color.Blue;
+        public Color SelectionColor => Color.Lime;
 
-        public GraphicsRendererSettings()
-        {
-        }
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }
