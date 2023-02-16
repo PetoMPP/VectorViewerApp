@@ -32,6 +32,11 @@ namespace VectorViewerUI.Views
             var models = await _dataProvider
                 .GetShapesFromFile(dialog.FileName, CancellationToken.None);
 
+            SetEditorContext(models);
+        }
+
+        private void SetEditorContext(IEnumerable<IViewModel> models)
+        {
             if (_editorView is null)
             {
                 _editorView = _editorViewFactory(models);
@@ -72,6 +77,29 @@ namespace VectorViewerUI.Views
         {
             _editorView = _editorViewFactory(Array.Empty<IShapeViewModel>());
             LoadFormToMainPanel(_editorView);
+        }
+
+        private async void MainView_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data is null)
+                return;
+
+            try
+            {
+                var path = ((string[])e.Data.GetData(DataFormats.FileDrop, false))[0];
+                var models = await _dataProvider.GetShapesFromFile(path, CancellationToken.None);
+                SetEditorContext(models);
+            }
+            catch
+            {
+                MessageBox.Show("Invalid file type!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void MainView_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data?.GetDataPresent(DataFormats.FileDrop, false) == true)
+                e.Effect = DragDropEffects.All;
         }
     }
 }
