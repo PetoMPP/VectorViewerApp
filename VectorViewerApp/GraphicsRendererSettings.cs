@@ -91,7 +91,7 @@ namespace VectorViewerUI
         }
 
         public Color HighlightColor => Color.Blue;
-        public Color SelectionColor => Color.LimeGreen;
+        public Color SelectionColor => Color.Lime;
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }

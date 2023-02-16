@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Numerics;
 
 namespace VectorViewerLibrary.Extensions
 {
@@ -9,6 +8,11 @@ namespace VectorViewerLibrary.Extensions
         public static float ConvertToRadians(this float angle)
         {
             return MathF.PI / 180 * angle;
+        }
+
+        public static float ConvertToDegrees(this float angle)
+        {
+            return 180 * angle / MathF.PI;
         }
 
         public static PointF[] TransformPoints(
@@ -38,6 +42,27 @@ namespace VectorViewerLibrary.Extensions
         }
 
         [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
+        public static PointF GetPointOnCircle(PointF center, float radius, float angle)
+        {
+            var angleR = angle.ConvertToRadians() + (MathF.PI / 2);
+            return new PointF(
+                x: center.X + (radius * MathF.Sin(angleR)),
+                y: center.Y + (radius * MathF.Cos(angleR)));
+        }
+
+        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
+        public static float GetAngleFromPointOnCircle(PointF center, float radius, PointF point)
+        {
+            var angle = (MathF.Asin((point.X - center.X) / radius) - (MathF.PI / 2))
+                .ConvertToDegrees();
+
+            if (center.Y > point.Y)
+                return -angle;
+
+            return angle;
+        }
+
+        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
         public static bool AreSegmentsIntersecting(PointF p1, PointF q1, PointF p2, PointF q2)
         {
             int o1 = Orientation(p1, q1, p2);
@@ -47,7 +72,8 @@ namespace VectorViewerLibrary.Extensions
 
             int Orientation(PointF p, PointF q, PointF r)
             {
-                float val = (q.Y - p.Y) * (r.X - q.X) - (q.X - p.X) * (r.Y - q.Y);
+                float val = ((q.Y - p.Y) * (r.X - q.X)) -
+                    ((q.X - p.X) * (r.Y - q.Y));
 
                 if (val == 0) return 0; // collinear
 
@@ -76,20 +102,6 @@ namespace VectorViewerLibrary.Extensions
                 return q.X <= MathF.Max(p.X, r.X) && q.X >= MathF.Min(p.X, r.X) &&
                     q.Y <= MathF.Max(p.Y, r.Y) && q.Y >= MathF.Min(p.Y, r.Y);
             }
-        }
-
-        public static float GetDistanceToLineSegment(this PointF point, PointF lineStart, PointF lineEnd)
-        {
-            var segmentSquaredLength = lineStart.GetSquaredDistanceToPoint(lineEnd);
-            if (segmentSquaredLength == 0)
-                return point.GetDistanceToPoint(lineStart);
-
-            var p = point.ToVector2();
-            var v = lineStart.ToVector2();
-            var w = lineEnd.ToVector2();
-            var t = MathF.Max(0, MathF.Min(1, Vector2.Dot(p - v, w - v)));
-            var projection = v + (t * (w - v));
-            return point.GetDistanceToPoint(new PointF(projection));
         }
 
         public static RectangleF GetBoundsRectangle(this PointF[] points)

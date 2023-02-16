@@ -69,29 +69,28 @@
             this.viewportLabel,
             this.zoomLabel,
             this.cursorLocationLabel});
-            this.statusStrip.Location = new System.Drawing.Point(0, 507);
+            this.statusStrip.Location = new System.Drawing.Point(0, 378);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 16, 0);
-            this.statusStrip.Size = new System.Drawing.Size(913, 26);
+            this.statusStrip.Size = new System.Drawing.Size(799, 22);
             this.statusStrip.TabIndex = 2;
             this.statusStrip.Text = "statusStrip1";
             // 
             // viewportLabel
             // 
             this.viewportLabel.Name = "viewportLabel";
-            this.viewportLabel.Size = new System.Drawing.Size(127, 20);
+            this.viewportLabel.Size = new System.Drawing.Size(100, 17);
             this.viewportLabel.Text = "Viewport: {0} x {1}";
             // 
             // zoomLabel
             // 
             this.zoomLabel.Name = "zoomLabel";
-            this.zoomLabel.Size = new System.Drawing.Size(90, 20);
+            this.zoomLabel.Size = new System.Drawing.Size(72, 17);
             this.zoomLabel.Text = "Zoom: {0} %";
             // 
             // cursorLocationLabel
             // 
             this.cursorLocationLabel.Name = "cursorLocationLabel";
-            this.cursorLocationLabel.Size = new System.Drawing.Size(84, 20);
+            this.cursorLocationLabel.Size = new System.Drawing.Size(67, 17);
             this.cursorLocationLabel.Text = "X: {0}  Y: {1}";
             // 
             // dataPanel
@@ -101,10 +100,11 @@
             this.dataPanel.Controls.Add(this.settingsPanel);
             this.dataPanel.Controls.Add(this.shapesLabel);
             this.dataPanel.Dock = System.Windows.Forms.DockStyle.Right;
-            this.dataPanel.Location = new System.Drawing.Point(684, 0);
+            this.dataPanel.Location = new System.Drawing.Point(599, 0);
+            this.dataPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.dataPanel.Name = "dataPanel";
-            this.dataPanel.Padding = new System.Windows.Forms.Padding(7);
-            this.dataPanel.Size = new System.Drawing.Size(229, 507);
+            this.dataPanel.Padding = new System.Windows.Forms.Padding(6, 5, 6, 5);
+            this.dataPanel.Size = new System.Drawing.Size(200, 378);
             this.dataPanel.TabIndex = 4;
             // 
             // shapesListBox
@@ -112,11 +112,12 @@
             this.shapesListBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.shapesListBox.Font = new System.Drawing.Font("Segoe UI Semibold", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.shapesListBox.FormattingEnabled = true;
-            this.shapesListBox.ItemHeight = 25;
-            this.shapesListBox.Location = new System.Drawing.Point(7, 47);
+            this.shapesListBox.ItemHeight = 20;
+            this.shapesListBox.Location = new System.Drawing.Point(6, 35);
+            this.shapesListBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.shapesListBox.Name = "shapesListBox";
             this.shapesListBox.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.shapesListBox.Size = new System.Drawing.Size(215, 186);
+            this.shapesListBox.Size = new System.Drawing.Size(188, 138);
             this.shapesListBox.TabIndex = 3;
             this.shapesListBox.SelectedIndexChanged += new System.EventHandler(this.ShapesListBox_SelectedIndexChanged);
             // 
@@ -130,9 +131,10 @@
             this.settingsPanel.Controls.Add(this.aliasingCheckBox);
             this.settingsPanel.Controls.Add(this.settingsLabel);
             this.settingsPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.settingsPanel.Location = new System.Drawing.Point(7, 233);
+            this.settingsPanel.Location = new System.Drawing.Point(6, 173);
+            this.settingsPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.settingsPanel.Name = "settingsPanel";
-            this.settingsPanel.Size = new System.Drawing.Size(215, 267);
+            this.settingsPanel.Size = new System.Drawing.Size(188, 200);
             this.settingsPanel.TabIndex = 2;
             // 
             // backgorundColorPanel
@@ -140,10 +142,11 @@
             this.backgorundColorPanel.Controls.Add(this.colorChangeLabel);
             this.backgorundColorPanel.Controls.Add(this.backgroundColorLabel);
             this.backgorundColorPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.backgorundColorPanel.Location = new System.Drawing.Point(0, 210);
+            this.backgorundColorPanel.Location = new System.Drawing.Point(0, 159);
+            this.backgorundColorPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.backgorundColorPanel.Name = "backgorundColorPanel";
-            this.backgorundColorPanel.Padding = new System.Windows.Forms.Padding(3);
-            this.backgorundColorPanel.Size = new System.Drawing.Size(215, 40);
+            this.backgorundColorPanel.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.backgorundColorPanel.Size = new System.Drawing.Size(188, 30);
             this.backgorundColorPanel.TabIndex = 8;
             // 
             // colorChangeLabel
@@ -151,18 +154,18 @@
             this.colorChangeLabel.BackColor = System.Drawing.Color.DarkGray;
             this.colorChangeLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.colorChangeLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.colorChangeLabel.Location = new System.Drawing.Point(163, 3);
+            this.colorChangeLabel.Location = new System.Drawing.Point(143, 2);
             this.colorChangeLabel.Name = "colorChangeLabel";
-            this.colorChangeLabel.Size = new System.Drawing.Size(49, 34);
+            this.colorChangeLabel.Size = new System.Drawing.Size(42, 26);
             this.colorChangeLabel.TabIndex = 9;
             this.colorChangeLabel.Click += new System.EventHandler(this.ColorChangeLabel_Click);
             // 
             // backgroundColorLabel
             // 
             this.backgroundColorLabel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.backgroundColorLabel.Location = new System.Drawing.Point(3, 3);
+            this.backgroundColorLabel.Location = new System.Drawing.Point(3, 2);
             this.backgroundColorLabel.Name = "backgroundColorLabel";
-            this.backgroundColorLabel.Size = new System.Drawing.Size(160, 34);
+            this.backgroundColorLabel.Size = new System.Drawing.Size(140, 26);
             this.backgroundColorLabel.TabIndex = 8;
             this.backgroundColorLabel.Text = "Background color:";
             this.backgroundColorLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -172,19 +175,21 @@
             this.lineThickenessPanel.Controls.Add(this.lineThicknessTextBox);
             this.lineThickenessPanel.Controls.Add(this.lineThicknessLabel);
             this.lineThickenessPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lineThickenessPanel.Location = new System.Drawing.Point(0, 170);
+            this.lineThickenessPanel.Location = new System.Drawing.Point(0, 129);
+            this.lineThickenessPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.lineThickenessPanel.Name = "lineThickenessPanel";
-            this.lineThickenessPanel.Padding = new System.Windows.Forms.Padding(3);
-            this.lineThickenessPanel.Size = new System.Drawing.Size(215, 40);
+            this.lineThickenessPanel.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.lineThickenessPanel.Size = new System.Drawing.Size(188, 30);
             this.lineThickenessPanel.TabIndex = 7;
             // 
             // lineThicknessTextBox
             // 
             this.lineThicknessTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lineThicknessTextBox.Location = new System.Drawing.Point(163, 3);
+            this.lineThicknessTextBox.Location = new System.Drawing.Point(143, 2);
+            this.lineThicknessTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.lineThicknessTextBox.MaxLength = 5;
             this.lineThicknessTextBox.Name = "lineThicknessTextBox";
-            this.lineThicknessTextBox.Size = new System.Drawing.Size(49, 27);
+            this.lineThicknessTextBox.Size = new System.Drawing.Size(42, 23);
             this.lineThicknessTextBox.TabIndex = 9;
             this.lineThicknessTextBox.Text = "0.25";
             this.lineThicknessTextBox.TextChanged += new System.EventHandler(this.LineThicknessTextBox_TextChanged);
@@ -192,9 +197,9 @@
             // lineThicknessLabel
             // 
             this.lineThicknessLabel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.lineThicknessLabel.Location = new System.Drawing.Point(3, 3);
+            this.lineThicknessLabel.Location = new System.Drawing.Point(3, 2);
             this.lineThicknessLabel.Name = "lineThicknessLabel";
-            this.lineThicknessLabel.Size = new System.Drawing.Size(160, 34);
+            this.lineThicknessLabel.Size = new System.Drawing.Size(140, 26);
             this.lineThicknessLabel.TabIndex = 8;
             this.lineThicknessLabel.Text = "Line thickness:";
             this.lineThicknessLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -204,19 +209,21 @@
             this.zoomPaddingPanel.Controls.Add(this.paddingTextBox);
             this.zoomPaddingPanel.Controls.Add(this.paddingLabel);
             this.zoomPaddingPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.zoomPaddingPanel.Location = new System.Drawing.Point(0, 130);
+            this.zoomPaddingPanel.Location = new System.Drawing.Point(0, 99);
+            this.zoomPaddingPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.zoomPaddingPanel.Name = "zoomPaddingPanel";
-            this.zoomPaddingPanel.Padding = new System.Windows.Forms.Padding(3);
-            this.zoomPaddingPanel.Size = new System.Drawing.Size(215, 40);
+            this.zoomPaddingPanel.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.zoomPaddingPanel.Size = new System.Drawing.Size(188, 30);
             this.zoomPaddingPanel.TabIndex = 6;
             // 
             // paddingTextBox
             // 
             this.paddingTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.paddingTextBox.Location = new System.Drawing.Point(163, 3);
+            this.paddingTextBox.Location = new System.Drawing.Point(143, 2);
+            this.paddingTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.paddingTextBox.MaxLength = 2;
             this.paddingTextBox.Name = "paddingTextBox";
-            this.paddingTextBox.Size = new System.Drawing.Size(49, 27);
+            this.paddingTextBox.Size = new System.Drawing.Size(42, 23);
             this.paddingTextBox.TabIndex = 9;
             this.paddingTextBox.Text = "10";
             this.paddingTextBox.TextChanged += new System.EventHandler(this.PaddingTextBox_TextChanged);
@@ -224,9 +231,9 @@
             // paddingLabel
             // 
             this.paddingLabel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.paddingLabel.Location = new System.Drawing.Point(3, 3);
+            this.paddingLabel.Location = new System.Drawing.Point(3, 2);
             this.paddingLabel.Name = "paddingLabel";
-            this.paddingLabel.Size = new System.Drawing.Size(160, 34);
+            this.paddingLabel.Size = new System.Drawing.Size(140, 26);
             this.paddingLabel.TabIndex = 8;
             this.paddingLabel.Text = "Auto zoom padding (%):";
             this.paddingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -235,10 +242,11 @@
             // 
             this.ignoreTransparencyCheckBox.AutoSize = true;
             this.ignoreTransparencyCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.ignoreTransparencyCheckBox.Location = new System.Drawing.Point(0, 100);
+            this.ignoreTransparencyCheckBox.Location = new System.Drawing.Point(0, 76);
+            this.ignoreTransparencyCheckBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.ignoreTransparencyCheckBox.Name = "ignoreTransparencyCheckBox";
-            this.ignoreTransparencyCheckBox.Padding = new System.Windows.Forms.Padding(3);
-            this.ignoreTransparencyCheckBox.Size = new System.Drawing.Size(215, 30);
+            this.ignoreTransparencyCheckBox.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.ignoreTransparencyCheckBox.Size = new System.Drawing.Size(188, 23);
             this.ignoreTransparencyCheckBox.TabIndex = 4;
             this.ignoreTransparencyCheckBox.Text = "Ignore shape transparency";
             this.ignoreTransparencyCheckBox.UseVisualStyleBackColor = true;
@@ -248,10 +256,11 @@
             // 
             this.scaleCheckBox.AutoSize = true;
             this.scaleCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.scaleCheckBox.Location = new System.Drawing.Point(0, 70);
+            this.scaleCheckBox.Location = new System.Drawing.Point(0, 53);
+            this.scaleCheckBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.scaleCheckBox.Name = "scaleCheckBox";
-            this.scaleCheckBox.Padding = new System.Windows.Forms.Padding(3);
-            this.scaleCheckBox.Size = new System.Drawing.Size(215, 30);
+            this.scaleCheckBox.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.scaleCheckBox.Size = new System.Drawing.Size(188, 23);
             this.scaleCheckBox.TabIndex = 3;
             this.scaleCheckBox.Text = "Display scale";
             this.scaleCheckBox.UseVisualStyleBackColor = true;
@@ -261,10 +270,11 @@
             // 
             this.aliasingCheckBox.AutoSize = true;
             this.aliasingCheckBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.aliasingCheckBox.Location = new System.Drawing.Point(0, 40);
+            this.aliasingCheckBox.Location = new System.Drawing.Point(0, 30);
+            this.aliasingCheckBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.aliasingCheckBox.Name = "aliasingCheckBox";
-            this.aliasingCheckBox.Padding = new System.Windows.Forms.Padding(3);
-            this.aliasingCheckBox.Size = new System.Drawing.Size(215, 30);
+            this.aliasingCheckBox.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.aliasingCheckBox.Size = new System.Drawing.Size(188, 23);
             this.aliasingCheckBox.TabIndex = 2;
             this.aliasingCheckBox.Text = "Enable AntiAliasing";
             this.aliasingCheckBox.UseVisualStyleBackColor = true;
@@ -277,7 +287,7 @@
             this.settingsLabel.ForeColor = System.Drawing.Color.Crimson;
             this.settingsLabel.Location = new System.Drawing.Point(0, 0);
             this.settingsLabel.Name = "settingsLabel";
-            this.settingsLabel.Size = new System.Drawing.Size(215, 40);
+            this.settingsLabel.Size = new System.Drawing.Size(188, 30);
             this.settingsLabel.TabIndex = 1;
             this.settingsLabel.Text = "Display settings:";
             this.settingsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -287,9 +297,9 @@
             this.shapesLabel.Dock = System.Windows.Forms.DockStyle.Top;
             this.shapesLabel.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
             this.shapesLabel.ForeColor = System.Drawing.Color.Crimson;
-            this.shapesLabel.Location = new System.Drawing.Point(7, 7);
+            this.shapesLabel.Location = new System.Drawing.Point(6, 5);
             this.shapesLabel.Name = "shapesLabel";
-            this.shapesLabel.Size = new System.Drawing.Size(215, 40);
+            this.shapesLabel.Size = new System.Drawing.Size(188, 30);
             this.shapesLabel.TabIndex = 0;
             this.shapesLabel.Text = "Available shapes:";
             this.shapesLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -300,9 +310,10 @@
             this.imagePanel.Controls.Add(this.displayPictureBox);
             this.imagePanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.imagePanel.Location = new System.Drawing.Point(0, 0);
+            this.imagePanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.imagePanel.Name = "imagePanel";
-            this.imagePanel.Padding = new System.Windows.Forms.Padding(17, 20, 17, 20);
-            this.imagePanel.Size = new System.Drawing.Size(684, 507);
+            this.imagePanel.Padding = new System.Windows.Forms.Padding(15, 15, 15, 15);
+            this.imagePanel.Size = new System.Drawing.Size(599, 378);
             this.imagePanel.TabIndex = 5;
             // 
             // displayPictureBox
@@ -310,9 +321,10 @@
             this.displayPictureBox.BackColor = System.Drawing.Color.DarkGray;
             this.displayPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.displayPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.displayPictureBox.Location = new System.Drawing.Point(17, 20);
+            this.displayPictureBox.Location = new System.Drawing.Point(15, 15);
+            this.displayPictureBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.displayPictureBox.Name = "displayPictureBox";
-            this.displayPictureBox.Size = new System.Drawing.Size(650, 467);
+            this.displayPictureBox.Size = new System.Drawing.Size(569, 348);
             this.displayPictureBox.TabIndex = 0;
             this.displayPictureBox.TabStop = false;
             this.displayPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DisplayPictureBox_MouseDown);
@@ -323,14 +335,15 @@
             // 
             // EditorView
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(913, 533);
+            this.ClientSize = new System.Drawing.Size(799, 400);
             this.Controls.Add(this.imagePanel);
             this.Controls.Add(this.dataPanel);
             this.Controls.Add(this.statusStrip);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "EditorView";
             this.Text = "EditorView";
             this.Shown += new System.EventHandler(this.EditorView_Shown);

@@ -46,6 +46,8 @@ namespace VectorViewerUI
             set
             {
                 _shapes = value;
+                _highlightedShapes.Clear();
+                SelectedShapes.Clear();
                 _originOffset = Vector2.Zero;
                 _origin = GetOrigin();
                 CalculateZoom();
@@ -114,10 +116,11 @@ namespace VectorViewerUI
 
         public void HighlightShapesAtPoint(Point location)
         {
+            var hadHighlightedShapes = _highlightedShapes.Any();
             var point = GetCoordinatesAtPoint(location, false);
             foreach (var shape in Shapes)
             {
-                if (shape.IsPointOnShape(point))
+                if (shape.IsPointOnShape(point, 5 / Zoom))
                 {
                     if (!_highlightedShapes.Contains(shape))
                         _highlightedShapes.Add(shape);
@@ -128,7 +131,9 @@ namespace VectorViewerUI
                         _highlightedShapes.Remove(shape);
                 }
             }
-            Render();
+
+            if (_highlightedShapes.Any() || hadHighlightedShapes)
+                Render();
         }
 
         public PointF GetCoordinatesAtPoint(Point location, bool invertY = true)
@@ -186,6 +191,19 @@ namespace VectorViewerUI
             finally
             {
                 RenderingComplete?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void SelectHighlightedShapes(bool addToCurrent)
+        {
+            if (addToCurrent)
+            {
+                foreach (var shape in _highlightedShapes)
+                    SelectedShapes.Add(shape);
+            }
+            else
+            {
+                SelectedShapes = _highlightedShapes.ToList();
             }
         }
 
@@ -271,7 +289,11 @@ namespace VectorViewerUI
 
             if (shape.ArcStart is float start && shape.ArcEnd is float end)
             {
-                _graphics.DrawArc(pen, boundsRectangle, start, end);
+                var sweep = start > end
+                    ? 360 - start + end
+                    : end - start;
+
+                _graphics.DrawArc(pen, boundsRectangle, -end, sweep);
                 return;
             }
 
@@ -288,9 +310,9 @@ namespace VectorViewerUI
         {
             var color = shape.Color;
             if (_selectedShapes.Contains(shape))
-                color = Settings.SelectionColor;
+                color = Color.FromArgb(Math.Max(shape.Color.A, (byte)128), Settings.SelectionColor);
             else if (_highlightedShapes.Contains(shape))
-                color = Settings.HighlightColor;
+                color = Color.FromArgb(Math.Max(shape.Color.A, (byte)128), Settings.HighlightColor);
 
             if (Settings.IgnoreTransparency)
                 color = Color.FromArgb(byte.MaxValue, color);
