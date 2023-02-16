@@ -7,22 +7,13 @@ namespace VectorViewerLibrary.DataReading
 {
     public class DxfFileParser : IFileParser
     {
-#if DEBUG
-        private readonly List<Type> _reportedTypes;
-
-        public DxfFileParser()
-        {
-            _reportedTypes = new List<Type>();
-        }
-#endif
-
         public async Task<IEnumerable<ShapeModel>> GetModelsFromFile(
             string path, CancellationToken cancellationToken)
         {
             return await Task.Run(() => ParseDxf(path));
         }
 
-        private List<ShapeModel> ParseDxf(string path)
+        private static List<ShapeModel> ParseDxf(string path)
         {
             var dxf = DxfFile.Load(path);
 
@@ -36,7 +27,7 @@ namespace VectorViewerLibrary.DataReading
             };
         }
 
-        private IEnumerable<ShapeModel> GetShapes(DxfFile dxf)
+        private static IEnumerable<ShapeModel> GetShapes(DxfFile dxf)
         {
             foreach (IGrouping<string, DxfEntity>? entities in dxf.Entities.GroupBy(e => e.Layer))
             {
@@ -53,17 +44,8 @@ namespace VectorViewerLibrary.DataReading
                     };
                     if (shape is not null)
                         yield return shape;
-
-#if DEBUG
-                    if (!_reportedTypes.Contains(entity.GetType()))
-                        _reportedTypes.Add(entity.GetType());
-#endif
                 }
             }
-#if DEBUG
-            Console.WriteLine($"Not parsed types:{Environment.NewLine}" +
-        string.Join(Environment.NewLine, _reportedTypes.Select(t => t.Name)));
-#endif
         }
 
         private static ShapeModel GetShapeFromCircle(DxfCircle circle, Color color)
@@ -111,8 +93,8 @@ namespace VectorViewerLibrary.DataReading
                 Color = color,
                 Points = new PointF[]
                 {
-                            new PointF((float)line.P1.X, -(float)line.P1.Y),
-                            new PointF((float)line.P2.X, -(float)line.P2.Y)
+                    new PointF((float)line.P1.X, -(float)line.P1.Y),
+                    new PointF((float)line.P2.X, -(float)line.P2.Y)
                 }
             };
         }

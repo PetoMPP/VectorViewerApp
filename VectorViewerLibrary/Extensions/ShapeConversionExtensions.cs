@@ -11,7 +11,7 @@ namespace VectorViewerLibrary.Extensions
             {
                 ShapeType.Line or
                 ShapeType.Triangle => new LinearShapeViewModel(model),
-                ShapeType.Circle => new CurvedShapeViewModel(model),
+                ShapeType.Circle or
                 ShapeType.Curve => new CurvedShapeViewModel(model),
                 ShapeType.Multi => new MultiShapeViewModel(model),
                 _ => throw new NotImplementedException(),
