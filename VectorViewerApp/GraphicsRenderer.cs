@@ -209,10 +209,7 @@ namespace VectorViewerUI
 
         private void RenderShapes()
         {
-            if (!Shapes.Any())
-                return;
-
-            foreach (var shape in Shapes)
+            foreach (var shape in Shapes.Where(s => s.Visible))
             {
                 try
                 {
@@ -354,7 +351,6 @@ namespace VectorViewerUI
                         break;
                     }
 
-                    points = points.Concat(points[..2]).ToArray();
                     _graphics.DrawLines(pen, points);
                     break;
                 default:

@@ -15,6 +15,7 @@ namespace VectorViewerLibrary.ViewModels
         public bool Filled { get; }
         public Color Color { get; }
         public string DisplayName { get; }
+        public bool Visible { get; }
 
         public LinearShapeViewModel(ShapeModel model)
         {
@@ -26,6 +27,7 @@ namespace VectorViewerLibrary.ViewModels
 
             Points = model.Points;
             LineType = model.LineType;
+            Visible = model.Visible;
             Filled = model.Filled ?? false;
             Color = model.Color ?? Color.Black;
             DisplayName = model.Type.ToString();

@@ -19,6 +19,7 @@ namespace VectorViewerLibrary.ViewModels
         public bool Filled { get; }
         public Color Color { get; }
         public string DisplayName { get; }
+        public bool Visible { get; }
 
         public CurvedShapeViewModel(ShapeModel model)
         {
@@ -44,6 +45,7 @@ namespace VectorViewerLibrary.ViewModels
             ArcStart = model.ArcStart;
             ArcEnd = model.ArcEnd;
             LineType = model.LineType;
+            Visible = model.Visible;
             Filled = model.Filled ?? false;
             Color = model.Color ?? Color.Black;
             DisplayName = model.Type.ToString();
