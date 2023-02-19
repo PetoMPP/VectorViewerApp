@@ -76,8 +76,8 @@ namespace VectorViewerLibrary.DataReading
             const int arrayEnd = 123;
             var result = new string[arrayEnd - arrayStart];
 
-            for (int i = 97; i < 123; i++)
-                result[i - arrayStart] = ((char)i).ToString();
+            for (int i = arrayStart; i < arrayEnd; i++)
+                result[i - arrayStart] = $"{(char)i}";
 
             return result;
         }

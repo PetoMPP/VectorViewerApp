@@ -6,6 +6,7 @@ namespace VectorViewerLibrary.ViewModels
     {
         PointF[] Points { get; }
         LineType LineType { get; }
+        bool Visible { get; }
         bool Filled { get; }
         Color Color { get; }
         new string DisplayName { get; }
