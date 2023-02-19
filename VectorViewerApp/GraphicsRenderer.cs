@@ -116,7 +116,7 @@ namespace VectorViewerUI
 
         public void HighlightShapesAtPoint(Point location)
         {
-            var hadHighlightedShapes = _highlightedShapes.Any();
+            var highlightedBefore = _highlightedShapes.ToList();
             var point = GetCoordinatesAtPoint(location, false);
             foreach (var shape in Shapes)
             {
@@ -132,8 +132,14 @@ namespace VectorViewerUI
                 }
             }
 
-            if (_highlightedShapes.Any() || hadHighlightedShapes)
-                Render();
+            var shapes = _highlightedShapes.Concat(highlightedBefore);
+            if (!shapes.Any())
+                return;
+
+            foreach (var shape in shapes)
+                RenderShape(shape);
+
+            RenderingComplete?.Invoke(this, EventArgs.Empty);
         }
 
         public PointF GetCoordinatesAtPoint(Point location, bool invertY = true)
@@ -227,16 +233,16 @@ namespace VectorViewerUI
                     }
                 }
             }
+        }
 
-            void RenderShape(IShapeViewModel shape)
-            {
-                if (shape is ILinearShapeViewModel linearShape)
-                    RenderLinearShape(linearShape);
-                else if (shape is ICurvedShapeViewModel curvedShape)
-                    RenderCurvedShape(curvedShape);
-                else
-                    throw new InvalidOperationException();
-            }
+        private void RenderShape(IShapeViewModel shape)
+        {
+            if (shape is ILinearShapeViewModel linearShape)
+                RenderLinearShape(linearShape);
+            else if (shape is ICurvedShapeViewModel curvedShape)
+                RenderCurvedShape(curvedShape);
+            else
+                throw new InvalidOperationException();
         }
 
         private void CalculateZoom()
