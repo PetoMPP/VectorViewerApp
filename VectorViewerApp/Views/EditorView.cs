@@ -210,7 +210,7 @@ namespace VectorViewerUI.Views
 
             if (!_moving)
             {
-                _renderer.HighlightShapesAtPoint(e.Location);
+                _renderer.HighlightShapeAtPoint(e.Location);
                 return;
             }
 

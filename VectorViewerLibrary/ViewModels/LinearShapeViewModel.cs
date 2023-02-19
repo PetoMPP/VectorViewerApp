@@ -61,15 +61,26 @@ namespace VectorViewerLibrary.ViewModels
             {
                 var segStart = Points[i - 1];
                 var segEnd = Points[i];
-                if (point.GetDistanceToLine(segStart, segEnd) <= tolerance)
-                {
-                    var bounds = new PointF[2] { segStart, segEnd }.GetBoundsRectangle();
-                    bounds.Inflate(tolerance, tolerance);
-                    if (bounds.Contains(point))
-                        return true;
-                }
+                if (point.GetDistanceToLineSegment(segStart, segEnd) <= tolerance)
+                    return true;
             }
             return false;
+        }
+
+        public float GetDistanceToShape(PointF point)
+        {
+            if (Filled && IsPointOnShape(point, 0))
+                return 0;
+
+            var values = new float[Points.Length - 1];
+            for (int i = 1; i < Points.Length; i++)
+            {
+                var segStart = Points[i - 1];
+                var segEnd = Points[i];
+                values[i - 1] = point.GetDistanceToLineSegment(segStart, segEnd);
+            }
+
+            return values.Min();
         }
     }
 }

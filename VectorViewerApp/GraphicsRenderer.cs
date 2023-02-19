@@ -114,22 +114,26 @@ namespace VectorViewerUI
             Render();
         }
 
-        public void HighlightShapesAtPoint(Point location)
+        public void HighlightShapeAtPoint(Point location)
         {
+            if (!Shapes.Any(s => s.Visible))
+                return;
+
             var highlightedBefore = _highlightedShapes.ToList();
             var point = GetCoordinatesAtPoint(location, false);
-            foreach (var shape in Shapes)
+            _highlightedShapes.Clear();
+            var (highlightShape, distance) = Shapes
+                .Where(s => s.Visible)
+                .Select(s => (Shape: s, Distance: s.GetDistanceToShape(point)))
+                .MinBy(t => t.Distance);
+
+            if (distance < 15 / Zoom)
+                _highlightedShapes.Add(highlightShape);
+
+            if (Settings.SmoothingMode == SmoothingMode.AntiAlias)
             {
-                if (shape.IsPointOnShape(point, 5 / Zoom))
-                {
-                    if (!_highlightedShapes.Contains(shape))
-                        _highlightedShapes.Add(shape);
-                }
-                else
-                {
-                    if (_highlightedShapes.Contains(shape))
-                        _highlightedShapes.Remove(shape);
-                }
+                Render();
+                return;
             }
 
             var shapes = _highlightedShapes.Concat(highlightedBefore);
@@ -137,7 +141,7 @@ namespace VectorViewerUI
                 return;
 
             foreach (var shape in shapes)
-                RenderShape(shape);
+                RenderShapeSafe(shape);
 
             RenderingComplete?.Invoke(this, EventArgs.Empty);
         }
@@ -216,21 +220,24 @@ namespace VectorViewerUI
         private void RenderShapes()
         {
             foreach (var shape in Shapes.Where(s => s.Visible))
+                RenderShapeSafe(shape);
+        }
+
+        private void RenderShapeSafe(IShapeViewModel shape)
+        {
+            try
             {
+                RenderShape(shape);
+            }
+            catch (OutOfMemoryException)
+            {
+                shape.Scale(0.99F);
                 try
                 {
                     RenderShape(shape);
                 }
                 catch (OutOfMemoryException)
                 {
-                    shape.Scale(0.99F);
-                    try
-                    {
-                        RenderShape(shape);
-                    }
-                    catch (OutOfMemoryException)
-                    {
-                    }
                 }
             }
         }

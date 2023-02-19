@@ -71,17 +71,50 @@ namespace VectorViewerLibrary.ViewModels
             if (Filled)
                 return dist - radius <= tolerance;
 
-            if (MathF.Abs(radius - point.GetDistanceToPoint(center)) > tolerance)
+            if (MathF.Abs(radius - dist) > tolerance)
                 return false;
 
             if (ArcStart is null || ArcEnd is null)
                 return true;
 
-            var startAngle = (float)ArcStart;
-            var endAngle = (float)ArcEnd;
+            var startAngle = GetAngle((float)ArcStart);
+            var endAngle = GetAngle((float)ArcEnd);
             var actualAngle = PointFExtensions.GetAngleFromPointOnCircle(center, dist, point);
 
             return actualAngle >= startAngle && actualAngle <= endAngle;
+        }
+
+        private static float GetAngle(float angle)
+        {
+            if (angle > 360)
+                angle %= 360;
+            if (angle > 180)
+                angle = -angle;
+            return angle;
+        }
+
+        public float GetDistanceToShape(PointF point)
+        {
+            var rect = Points.GetBoundsRectangle();
+            var center = rect.GetCenter();
+            var radius = rect.Height / 2;
+            var dist = point.GetDistanceToPoint(center);
+            if (Filled)
+                return MathF.Max(dist - radius, 0);
+
+            if (ArcStart is null || ArcEnd is null)
+                return MathF.Abs(dist - radius);
+
+            var startAngle = GetAngle((float)ArcStart);
+            var endAngle = GetAngle((float)ArcEnd);
+            var actualAngle = PointFExtensions.GetAngleFromPointOnCircle(center, dist, point);
+
+            if (actualAngle >= startAngle && actualAngle <= endAngle)
+                return MathF.Abs(dist - radius);
+
+            return MathF.Abs(radius - MathF.Sqrt(MathF.Min(
+                point.GetSquaredDistanceToPoint(PointFExtensions.GetPointOnCircle(center, radius, startAngle)),
+                point.GetSquaredDistanceToPoint(PointFExtensions.GetPointOnCircle(center, radius, endAngle)))));
         }
     }
 }

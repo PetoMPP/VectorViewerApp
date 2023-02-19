@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Numerics;
 
 namespace VectorViewerLibrary.Extensions
 {
@@ -35,10 +36,19 @@ namespace VectorViewerLibrary.Extensions
             return MathF.Pow(next.X - start.X, 2) + MathF.Pow(next.Y - start.Y, 2);
         }
 
-        public static float GetDistanceToLine(this PointF point, PointF lineStart, PointF lineEnd)
+        public static float GetDistanceToLineSegment(this PointF point, PointF lineStart, PointF lineEnd)
         {
-            return MathF.Abs(((lineEnd.X - lineStart.X) * (lineStart.Y - point.Y)) - ((lineStart.X - point.X) * (lineEnd.Y - lineStart.Y))) /
-                    MathF.Sqrt(MathF.Pow(lineEnd.X - lineStart.X, 2) + MathF.Pow(lineEnd.Y - lineStart.Y, 2));
+            var lineLenSq = lineStart.GetSquaredDistanceToPoint(lineEnd);
+            if (lineLenSq == 0)
+                return point.GetDistanceToPoint(lineStart);
+
+            var p = point.ToVector2();
+            var v = lineStart.ToVector2();
+            var w = lineEnd.ToVector2();
+
+            var t = MathF.Max(0, MathF.Min(1, Vector2.Dot(p - v, w - v) / lineLenSq));
+            var proj = v + (t * (w - v));
+            return point.GetDistanceToPoint((PointF)proj);
         }
 
         [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
