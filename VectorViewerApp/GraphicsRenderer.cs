@@ -353,9 +353,7 @@ namespace VectorViewerUI
             if (shape.Points.Length != 4)
                 throw new InvalidOperationException("Invalid count of Points");
 
-            var color = colorOverride is Color ovColor
-                ? ovColor
-                : GetShapeColor(shape);
+            var color = colorOverride ?? GetShapeColor(shape);
             using var pen = GetPen(shape, color);
 
             var boundsRectangle = shape.Points
@@ -411,9 +409,7 @@ namespace VectorViewerUI
 
         private void RenderLinearShape(ILinearShapeViewModel shape, Color? colorOverride = null)
         {
-            var color = colorOverride is Color ovColor
-                ? ovColor
-                : GetShapeColor(shape);
+            var color = colorOverride ?? GetShapeColor(shape);
             using var pen = GetPen(shape, color);
 
             var points = shape.Points.TransformPoints(_origin, Zoom);
@@ -570,7 +566,10 @@ namespace VectorViewerUI
             var textSize = _graphics.MeasureString(text, Settings.Font);
 
             _graphics.DrawString(
-                text, Settings.Font, brush, new PointF(
+                text,
+                Settings.Font,
+                brush,
+                new PointF(
                     point.X - (textSize.Width / 2),
                     point.Y + 5));
         }

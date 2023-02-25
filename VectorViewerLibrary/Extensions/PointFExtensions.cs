@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 
 namespace VectorViewerLibrary.Extensions
@@ -51,7 +50,6 @@ namespace VectorViewerLibrary.Extensions
             return point.GetDistanceToPoint((PointF)proj);
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
         public static PointF GetPointOnCircle(PointF center, float radius, float angle)
         {
             var angleR = angle.ConvertToRadians() + (MathF.PI / 2);
@@ -60,7 +58,6 @@ namespace VectorViewerLibrary.Extensions
                 y: center.Y + (radius * MathF.Cos(angleR)));
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
         public static float GetAngleFromPointOnCircle(PointF center, float radius, PointF point)
         {
             var angle = (MathF.Asin((point.X - center.X) / radius) - (MathF.PI / 2))
@@ -72,7 +69,6 @@ namespace VectorViewerLibrary.Extensions
             return angle;
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
         public static bool AreSegmentsIntersecting(PointF p0, PointF p1, PointF p2, PointF p3)
         {
             float p0_x = p0.X;
@@ -106,7 +102,6 @@ namespace VectorViewerLibrary.Extensions
                 new SizeF(xMax - xMin, yMax - yMin));
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "<Pending>")]
         internal static PointF GetPointOnLine(PointF a, PointF b, float distFromA)
         {
             var dist = a.GetDistanceToPoint(b);
@@ -115,7 +110,6 @@ namespace VectorViewerLibrary.Extensions
                 y: a.Y - (distFromA * (a.Y - b.Y) / dist));
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "<Pending>")]
         public static PointF[] GetLineCircleIntersectionPoints(PointF a, PointF b, PointF center, float radius)
         {
             a = a.Sub(center);
@@ -128,22 +122,23 @@ namespace VectorViewerLibrary.Extensions
             var drSq = dr * dr;
             var d = a.X * b.Y - a.Y * b.X;
             var disc = radius * radius * dr * dr - d * d;
+            if (disc < 0)
+                return Array.Empty<PointF>();
+
+            if (disc == 0)
+                return new[] { new PointF(x: d * dy / drSq, y: -d * dx / drSq).Add(center) };
+
             var discSqrt = MathF.Sqrt(disc);
-            return disc switch
+            return new[]
             {
-                > 0 => new[]
-                {
-                    new PointF(
-                        x: (d * dy + (dy < 0 ? -1 : 1) * dx * discSqrt) / drSq ,
-                        y: (-d * dx + MathF.Abs(dy) * discSqrt) / drSq)
-                        .Add(center),
-                    new PointF(
-                        x: (d * dy - (dy < 0 ? -1 : 1) * dx * discSqrt) / drSq ,
-                        y: (-d * dx - MathF.Abs(dy) * discSqrt) / drSq)
-                        .Add(center)
-                },
-                0 => new[] { new PointF(x: d * dy / drSq, y: -d * dx / drSq).Add(center) },
-                _ => Array.Empty<PointF>()
+                new PointF(
+                    x: (d * dy + (dy < 0 ? -1 : 1) * dx * discSqrt) / drSq ,
+                    y: (-d * dx + MathF.Abs(dy) * discSqrt) / drSq)
+                    .Add(center),
+                new PointF(
+                    x: (d * dy - (dy < 0 ? -1 : 1) * dx * discSqrt) / drSq ,
+                    y: (-d * dx - MathF.Abs(dy) * discSqrt) / drSq)
+                    .Add(center)
             };
         }
 

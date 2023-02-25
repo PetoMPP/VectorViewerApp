@@ -153,7 +153,7 @@ namespace VectorViewerLibrary.ViewModels
                 }
 
                 if (intersectionPoints.Any(p => rect.Contains(p) &&
-                    IsAngleWithinArc(PointFExtensions.GetAngleFromPointOnCircle(_center, _radius, p))))
+                    IsAngleWithinArc(GetAngle(PointFExtensions.GetAngleFromPointOnCircle(_center, _radius, p)))))
                 {
                     return true;
                 }
