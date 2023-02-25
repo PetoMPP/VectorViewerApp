@@ -7,7 +7,7 @@ namespace VectorViewerLibrary.Models
     {
         public ShapeType Type { get; set; }
         public LineType LineType { get; set; }
-        public bool Visible { get; set; }
+        public bool Visible { get; set; } = true;
         public PointF[]? Points { get; set; }
         public PointF? Center { get; set; }
         public float? Radius { get; set; }

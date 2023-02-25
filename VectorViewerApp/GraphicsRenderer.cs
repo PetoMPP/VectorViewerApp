@@ -108,10 +108,10 @@ namespace VectorViewerUI
             _highlightedShapes = new List<IShapeViewModel>();
             _selectedShapes = new List<IShapeViewModel>();
 
-            Settings.PropertyChanged += (_, _) => Render();
-            PropertyChanged += (_, _) => Render();
+            Settings.PropertyChanged += (_, _) => Render(true);
+            PropertyChanged += (_, _) => Render(true);
 
-            Render();
+            Render(true);
         }
 
         public void HighlightShapeAtPoint(Point location)
@@ -132,7 +132,7 @@ namespace VectorViewerUI
 
             if (Settings.SmoothingMode == SmoothingMode.AntiAlias)
             {
-                Render();
+                Render(true);
                 return;
             }
 
@@ -141,7 +141,10 @@ namespace VectorViewerUI
                 return;
 
             foreach (var shape in shapes)
+            {
+                RenderShapeSafe(shape, Settings.BackgroundColor);
                 RenderShapeSafe(shape);
+            }
 
             RenderingComplete?.Invoke(this, EventArgs.Empty);
         }
@@ -179,31 +182,6 @@ namespace VectorViewerUI
                 location.Y - newPoint.Y);
         }
 
-        private Point GetPointAtCoordinates(PointF location)
-        {
-            var x = _origin.X + (location.X * Zoom);
-            var y = _origin.Y + (-location.Y * Zoom);
-            return new Point((int)x, (int)y);
-        }
-
-        private void Render()
-        {
-            try
-            {
-                _graphics.SmoothingMode = Settings.SmoothingMode;
-                RenderBackground();
-
-                if (Settings.DisplayScale)
-                    RenderAxes();
-
-                RenderShapes();
-            }
-            finally
-            {
-                RenderingComplete?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
         public void SelectHighlightedShapes(bool addToCurrent)
         {
             if (addToCurrent)
@@ -217,24 +195,109 @@ namespace VectorViewerUI
             }
         }
 
+        public void MakeRectangleSelection(Rectangle rect, bool selectIntersecting = false)
+        {
+            Render();
+            HighlightShapesInRectange(rect, selectIntersecting);
+            if (selectIntersecting)
+            {
+                using var brush = new SolidBrush(Color.FromArgb(63, Color.DarkGreen));
+                using var pen = new Pen(Color.DarkGreen, 1);
+                _graphics.FillRectangle(brush, rect);
+                _graphics.DrawRectangle(pen, rect);
+            }
+            else
+            {
+                using var brush = new SolidBrush(Color.FromArgb(63, Color.DarkBlue));
+                using var pen = new Pen(Color.DarkBlue, 1);
+                _graphics.FillRectangle(brush, rect);
+                _graphics.DrawRectangle(pen, rect);
+            }
+
+            RenderingComplete?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void EndRectangleSelection()
+        {
+            SelectHighlightedShapes(false);
+        }
+
+        private void HighlightShapesInRectange(Rectangle rect, bool selectIntersecting)
+        {
+            if (!Shapes.Any(s => s.Visible))
+                return;
+
+            var highlightedBefore = _highlightedShapes.ToList();
+            var rectangle = new RectangleF(GetCoordinatesAtPoint(rect.Location, false), rect.Size / Zoom);
+            _highlightedShapes.Clear();
+            var shapes = selectIntersecting
+                ? Shapes.Where(s => s.IsRectangleIntersecting(rectangle))
+                : Shapes.Where(s => s.IsContainedInRectangle(rectangle));
+
+            foreach (var shape in shapes)
+                _highlightedShapes.Add(shape);
+
+            if (Settings.SmoothingMode == SmoothingMode.AntiAlias)
+            {
+                Render(true);
+                return;
+            }
+
+            shapes = _highlightedShapes.Concat(highlightedBefore);
+            if (!shapes.Any())
+                return;
+
+            foreach (var shape in shapes)
+            {
+                RenderShapeSafe(shape, Settings.BackgroundColor);
+                RenderShapeSafe(shape);
+            }
+        }
+
+        private Point GetPointAtCoordinates(PointF location)
+        {
+            var x = _origin.X + (location.X * Zoom);
+            var y = _origin.Y + (-location.Y * Zoom);
+            return new Point((int)x, (int)y);
+        }
+
+        private void Render(bool invalidate = false)
+        {
+            try
+            {
+                _graphics.SmoothingMode = Settings.SmoothingMode;
+                RenderBackground();
+
+                if (Settings.DisplayScale)
+                    RenderAxes();
+
+                RenderShapes();
+            }
+            finally
+            {
+                if (invalidate)
+                    RenderingComplete?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
         private void RenderShapes()
         {
             foreach (var shape in Shapes.Where(s => s.Visible))
                 RenderShapeSafe(shape);
         }
 
-        private void RenderShapeSafe(IShapeViewModel shape)
+        private void RenderShapeSafe(IShapeViewModel shape, Color? colorOverride = null)
         {
             try
             {
-                RenderShape(shape);
+                RenderShape(shape, colorOverride);
             }
             catch (OutOfMemoryException)
             {
                 shape.Scale(0.99F);
                 try
                 {
-                    RenderShape(shape);
+                    RenderShape(shape, colorOverride);
                 }
                 catch (OutOfMemoryException)
                 {
@@ -242,12 +305,12 @@ namespace VectorViewerUI
             }
         }
 
-        private void RenderShape(IShapeViewModel shape)
+        private void RenderShape(IShapeViewModel shape, Color? colorOverride = null)
         {
             if (shape is ILinearShapeViewModel linearShape)
-                RenderLinearShape(linearShape);
+                RenderLinearShape(linearShape, colorOverride);
             else if (shape is ICurvedShapeViewModel curvedShape)
-                RenderCurvedShape(curvedShape);
+                RenderCurvedShape(curvedShape, colorOverride);
             else
                 throw new InvalidOperationException();
         }
@@ -285,12 +348,14 @@ namespace VectorViewerUI
             _zoom = zooms.Min();
         }
 
-        private void RenderCurvedShape(ICurvedShapeViewModel shape)
+        private void RenderCurvedShape(ICurvedShapeViewModel shape, Color? colorOverride = null)
         {
             if (shape.Points.Length != 4)
                 throw new InvalidOperationException("Invalid count of Points");
 
-            var color = GetShapeColor(shape);
+            var color = colorOverride is Color ovColor
+                ? ovColor
+                : GetShapeColor(shape);
             using var pen = GetPen(shape, color);
 
             var boundsRectangle = shape.Points
@@ -344,9 +409,11 @@ namespace VectorViewerUI
             };
         }
 
-        private void RenderLinearShape(ILinearShapeViewModel shape)
+        private void RenderLinearShape(ILinearShapeViewModel shape, Color? colorOverride = null)
         {
-            var color = GetShapeColor(shape);
+            var color = colorOverride is Color ovColor
+                ? ovColor
+                : GetShapeColor(shape);
             using var pen = GetPen(shape, color);
 
             var points = shape.Points.TransformPoints(_origin, Zoom);

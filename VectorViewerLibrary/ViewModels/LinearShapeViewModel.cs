@@ -82,5 +82,33 @@ namespace VectorViewerLibrary.ViewModels
 
             return values.Min();
         }
+
+        public bool IsRectangleIntersecting(RectangleF rectangle)
+        {
+            if (IsContainedInRectangle(rectangle))
+                return true;
+
+            foreach (var (a, b) in rectangle.GetSides())
+            {
+                for (int i = 1; i < Points.Length; i++)
+                {
+                    var segStart = Points[i - 1];
+                    var segEnd = Points[i];
+                    if (PointFExtensions.AreSegmentsIntersecting(segStart, segEnd, a, b))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsContainedInRectangle(RectangleF rectangle)
+        {
+            foreach (var point in Points)
+            {
+                if (!rectangle.Contains(point))
+                    return false;
+            }
+            return true;
+        }
     }
 }

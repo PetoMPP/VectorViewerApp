@@ -31,12 +31,9 @@ namespace VectorViewerLibrary.DataReading
 
         private static IEnumerable<ShapeModel> GetShapes(DxfFile dxf)
         {
-            var layeredBlocks = dxf.Blocks.GroupBy(b => b.Layer);
-            var layeredEntities = dxf.Entities
-                .GroupBy(e => e.Layer)
-                .ExceptBy(layeredBlocks.Select(b => b.Key), e => e.Key);
+            var parsedEntities = new List<DxfEntity>();
 
-            foreach (IGrouping<string, DxfBlock> blocks in layeredBlocks)
+            foreach (IGrouping<string, DxfBlock> blocks in dxf.Blocks.GroupBy(b => b.Layer))
             {
                 var layer = dxf.Layers.First(l => l.Name == blocks.Key);
                 foreach (DxfBlock block in blocks)
@@ -44,6 +41,7 @@ namespace VectorViewerLibrary.DataReading
                     var offset = new Vector2((float)block.BasePoint.X, (float)-block.BasePoint.Y);
                     foreach (var entity in block.Entities)
                     {
+                        parsedEntities.Add(entity);
                         var color = GetDxfEntityColor(entity, layer);
                         var shape = GetShapeFromEntity(layer, entity, color);
                         if (shape is null)
@@ -57,7 +55,7 @@ namespace VectorViewerLibrary.DataReading
                 }
             }
 
-            foreach (IGrouping<string, DxfEntity> entities in layeredEntities)
+            foreach (IGrouping<string, DxfEntity> entities in dxf.Entities.Except(parsedEntities).GroupBy(e => e.Layer))
             {
                 var layer = dxf.Layers.First(l => l.Name == entities.Key);
                 foreach (var entity in entities)

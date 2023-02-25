@@ -12,6 +12,9 @@ namespace VectorViewerLibrary.ViewModels
 
     public class CurvedShapeViewModel : ICurvedShapeViewModel
     {
+        private PointF _center;
+        private float _radius;
+
         public LineType LineType { get; }
         public PointF[] Points { get; private set; }
         public float? ArcStart { get; private set; }
@@ -34,7 +37,7 @@ namespace VectorViewerLibrary.ViewModels
 
             var center = (PointF)model.Center;
 
-            Points = new PointF[4]
+            Points = new PointF[]
             {
                 new PointF(center.X + (float)model.Radius, center.Y + (float)model.Radius),
                 new PointF(center.X - (float)model.Radius, center.Y + (float)model.Radius),
@@ -49,6 +52,14 @@ namespace VectorViewerLibrary.ViewModels
             Filled = model.Filled ?? false;
             Color = model.Color ?? Color.Black;
             DisplayName = model.Type.ToString();
+            RefreshCalculationFields();
+        }
+
+        private void RefreshCalculationFields()
+        {
+            var rect = Points.GetBoundsRectangle();
+            _center = rect.GetCenter();
+            _radius = rect.Height / 2;
         }
 
         public void Scale(float factor)
@@ -60,18 +71,16 @@ namespace VectorViewerLibrary.ViewModels
             var diff = (end - start) * factor;
             ArcStart = end - diff;
             ArcEnd = start + diff;
+            RefreshCalculationFields();
         }
 
         public bool IsPointOnShape(PointF point, float tolerance = 0.25F)
         {
-            var rect = Points.GetBoundsRectangle();
-            var center = rect.GetCenter();
-            var radius = rect.Height / 2;
-            var dist = point.GetDistanceToPoint(center);
+            var dist = point.GetDistanceToPoint(_center);
             if (Filled)
-                return dist - radius <= tolerance;
+                return dist - _radius <= tolerance;
 
-            if (MathF.Abs(radius - dist) > tolerance)
+            if (MathF.Abs(_radius - dist) > tolerance)
                 return false;
 
             if (ArcStart is null || ArcEnd is null)
@@ -79,42 +88,126 @@ namespace VectorViewerLibrary.ViewModels
 
             var startAngle = GetAngle((float)ArcStart);
             var endAngle = GetAngle((float)ArcEnd);
-            var actualAngle = PointFExtensions.GetAngleFromPointOnCircle(center, dist, point);
+            var actualAngle = PointFExtensions.GetAngleFromPointOnCircle(_center, dist, point);
 
             return actualAngle >= startAngle && actualAngle <= endAngle;
         }
 
+        /// <summary>
+        /// Normalizes angle to value between 0 and 360
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <returns>angle value between 0 and 360</returns>
         private static float GetAngle(float angle)
         {
-            if (angle > 360)
-                angle %= 360;
-            if (angle > 180)
-                angle = -angle;
-            return angle;
+            angle = ((int)angle % 360) + (angle - MathF.Floor(angle));
+            return angle > 0
+                ? angle
+                : angle + 360;
         }
 
         public float GetDistanceToShape(PointF point)
         {
-            var rect = Points.GetBoundsRectangle();
-            var center = rect.GetCenter();
-            var radius = rect.Height / 2;
-            var dist = point.GetDistanceToPoint(center);
+            var dist = point.GetDistanceToPoint(_center);
             if (Filled)
-                return MathF.Max(dist - radius, 0);
+                return MathF.Max(dist - _radius, 0);
 
             if (ArcStart is null || ArcEnd is null)
-                return MathF.Abs(dist - radius);
+                return MathF.Abs(dist - _radius);
 
-            var startAngle = GetAngle((float)ArcStart);
-            var endAngle = GetAngle((float)ArcEnd);
-            var actualAngle = PointFExtensions.GetAngleFromPointOnCircle(center, dist, point);
+            var start = GetAngle((float)ArcStart);
+            var end = GetAngle((float)ArcEnd);
+            var angle = GetAngle(PointFExtensions.GetAngleFromPointOnCircle(_center, dist, point));
 
-            if (actualAngle >= startAngle && actualAngle <= endAngle)
-                return MathF.Abs(dist - radius);
+            var isAngleWithinArc = (start < end)
+                ? angle >= start && angle <= end
+                : angle >= start || angle <= end;
 
-            return MathF.Abs(radius - MathF.Sqrt(MathF.Min(
-                point.GetSquaredDistanceToPoint(PointFExtensions.GetPointOnCircle(center, radius, startAngle)),
-                point.GetSquaredDistanceToPoint(PointFExtensions.GetPointOnCircle(center, radius, endAngle)))));
+            if (isAngleWithinArc)
+                return MathF.Abs(dist - _radius);
+
+            return MathF.Sqrt(MathF.Min(
+                point.GetSquaredDistanceToPoint(PointFExtensions.GetPointOnCircle(_center, _radius, start)),
+                point.GetSquaredDistanceToPoint(PointFExtensions.GetPointOnCircle(_center, _radius, end))));
+        }
+
+        public bool IsRectangleIntersecting(RectangleF rectangle)
+        {
+            var corners = rectangle.GetCorners().ToArray();
+
+            for (int i = 0; i < corners.Length; i++)
+            {
+                var idx = i == 0 ? corners.Length - 1 : i - 1;
+                var a = corners[idx];
+                var b = corners[i];
+                var rect = new[] { a, b }.GetBoundsRectangle();
+                rect.Inflate(0.01F, 0.01F);
+                var intersectionPoints = PointFExtensions.GetLineCircleIntersectionPoints(a, b, _center, _radius);
+
+                if (ArcStart is null || ArcEnd is null)
+                {
+                    if (intersectionPoints.Any())
+                        return true;
+
+                    continue;
+                }
+
+                if (intersectionPoints.Any(p => rect.Contains(p) &&
+                    IsAngleWithinArc(PointFExtensions.GetAngleFromPointOnCircle(_center, _radius, p))))
+                {
+                    return true;
+                }
+            }
+            return IsContainedInRectangle(rectangle);
+        }
+
+        public bool IsContainedInRectangle(RectangleF rectangle)
+        {
+            if (ArcStart is not float start || ArcEnd is not float end)
+            {
+                foreach (var point in Points)
+                {
+                    if (!rectangle.Contains(point))
+                        return false;
+                }
+                return true;
+            }
+
+            // start end and every covered mult 90deg have to be contained
+            start = GetAngle(start);
+            end = GetAngle(end);
+            var startPoint = PointFExtensions.GetPointOnCircle(_center, _radius, start);
+            if (!rectangle.Contains(startPoint))
+                return false;
+
+            var endPoint = PointFExtensions.GetPointOnCircle(_center, _radius, end);
+            if (!rectangle.Contains(endPoint))
+                return false;
+
+            var angles = new float[] { 0, 90, 180, 270 };
+
+            foreach (var angle in angles)
+            {
+                if (IsAngleWithinArc(angle) &&
+                    !rectangle.Contains(PointFExtensions.GetPointOnCircle(_center, _radius, angle)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool IsAngleWithinArc(float angle)
+        {
+            if (ArcStart is not float start || ArcEnd is not float end)
+                return true;
+
+            start = GetAngle(start);
+            end = GetAngle(end);
+            return start < end
+                ? angle >= start && angle <= end
+                : angle >= start || angle <= end;
         }
     }
 }
