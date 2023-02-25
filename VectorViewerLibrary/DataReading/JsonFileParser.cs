@@ -30,10 +30,7 @@ namespace VectorViewerLibrary.DataReading
             var result = new List<ShapeModel>();
 
             foreach (JObject shapeObject in jArray)
-            {
-                var shapeModel = GetShapeModel(shapeObject);
-                result.Add(shapeModel);
-            }
+                result.Add(GetShapeModel(shapeObject));
 
             return result;
         }
@@ -65,7 +62,14 @@ namespace VectorViewerLibrary.DataReading
             if (shapeModel is null)
                 throw new InvalidOperationException("Invalid JSON");
 
+            if (shapeModel.ArcStart is float start && shapeModel.ArcEnd is float end)
+            {
+                shapeModel.ArcStart = -end;
+                shapeModel.ArcEnd = -start;
+            }
+
             shapeModel.Shapes = innerShapes.ToArray();
+            shapeModel.Visible = true;
             return shapeModel;
         }
 

@@ -12,6 +12,9 @@ namespace VectorViewerLibrary.ViewModels
         new string DisplayName { get; }
 
         bool IsPointOnShape(PointF point, float tolerance = 0.25F);
+        float GetDistanceToShape(PointF point);
         void Scale(float factor);
+        bool IsRectangleIntersecting(RectangleF rectangle);
+        bool IsContainedInRectangle(RectangleF rectangle);
     }
 }

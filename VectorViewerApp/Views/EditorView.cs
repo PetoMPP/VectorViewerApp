@@ -3,6 +3,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Numerics;
 using VectorViewerLibrary.ViewModels;
+using VectorViewerLibrary.Extensions;
 
 namespace VectorViewerUI.Views
 {
@@ -26,6 +27,7 @@ namespace VectorViewerUI.Views
         private Point _lastMouseLocation;
         private bool _moving;
         private Keys _buttonFlags;
+        private Point? _selectionPoint;
 
         public PictureBox DisplayPictureBox => displayPictureBox;
 
@@ -171,13 +173,7 @@ namespace VectorViewerUI.Views
                 case MouseButtons.Left:
                     if (_buttonFlags == Keys.None)
                     {
-                        _renderer.SelectHighlightedShapes(false);
-                        return;
-                    }
-
-                    if (_buttonFlags == Keys.Control)
-                    {
-                        _renderer.SelectHighlightedShapes(true);
+                        _selectionPoint = e.Location;
                         return;
                     }
 
@@ -208,19 +204,30 @@ namespace VectorViewerUI.Views
             cursorLocationLabel.Text = string.Format(
                 CursorLocationLabelTextBase, location.X, location.Y);
 
-            if (!_moving)
+            if (_moving)
             {
-                _renderer.HighlightShapesAtPoint(e.Location);
+                _renderer.OriginOffset += new Vector2(
+                    e.X - _lastMouseLocation.X, e.Y - _lastMouseLocation.Y);
+                _lastMouseLocation = e.Location;
+                return;
+            }
+            if (_selectionPoint is Point selectionPoint)
+            {
+                var rect = new Point[] { selectionPoint, e.Location }.GetBoundsRectangle();
+                _renderer.MakeRectangleSelection(rect, rect.Left == e.X);
                 return;
             }
 
-            _renderer.OriginOffset += new Vector2(
-                e.X - _lastMouseLocation.X, e.Y - _lastMouseLocation.Y);
-            _lastMouseLocation = e.Location;
+            _renderer.HighlightShapeAtPoint(e.Location);
         }
 
         private void DisplayPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
+            if (e.Button == MouseButtons.Left)
+            {
+                _renderer.EndRectangleSelection();
+                _selectionPoint = null;
+            }
             _moving = false;
             Cursor = Cursors.Default;
         }

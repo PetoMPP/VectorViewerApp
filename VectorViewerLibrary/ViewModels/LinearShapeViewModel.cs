@@ -61,15 +61,54 @@ namespace VectorViewerLibrary.ViewModels
             {
                 var segStart = Points[i - 1];
                 var segEnd = Points[i];
-                if (point.GetDistanceToLine(segStart, segEnd) <= tolerance)
+                if (point.GetDistanceToLineSegment(segStart, segEnd) <= tolerance)
+                    return true;
+            }
+            return false;
+        }
+
+        public float GetDistanceToShape(PointF point)
+        {
+            if (Filled && IsPointOnShape(point, 0))
+                return 0;
+
+            var values = new float[Points.Length - 1];
+            for (int i = 1; i < Points.Length; i++)
+            {
+                var segStart = Points[i - 1];
+                var segEnd = Points[i];
+                values[i - 1] = point.GetDistanceToLineSegment(segStart, segEnd);
+            }
+
+            return values.Min();
+        }
+
+        public bool IsRectangleIntersecting(RectangleF rectangle)
+        {
+            if (IsContainedInRectangle(rectangle))
+                return true;
+
+            foreach (var (a, b) in rectangle.GetSides())
+            {
+                for (int i = 1; i < Points.Length; i++)
                 {
-                    var bounds = new PointF[2] { segStart, segEnd }.GetBoundsRectangle();
-                    bounds.Inflate(tolerance, tolerance);
-                    if (bounds.Contains(point))
+                    var segStart = Points[i - 1];
+                    var segEnd = Points[i];
+                    if (PointFExtensions.AreSegmentsIntersecting(segStart, segEnd, a, b))
                         return true;
                 }
             }
             return false;
+        }
+
+        public bool IsContainedInRectangle(RectangleF rectangle)
+        {
+            foreach (var point in Points)
+            {
+                if (!rectangle.Contains(point))
+                    return false;
+            }
+            return true;
         }
     }
 }

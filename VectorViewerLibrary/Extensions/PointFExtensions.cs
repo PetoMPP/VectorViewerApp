@@ -1,5 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
+﻿using System.Drawing;
+using System.Numerics;
 
 namespace VectorViewerLibrary.Extensions
 {
@@ -35,13 +35,21 @@ namespace VectorViewerLibrary.Extensions
             return MathF.Pow(next.X - start.X, 2) + MathF.Pow(next.Y - start.Y, 2);
         }
 
-        public static float GetDistanceToLine(this PointF point, PointF lineStart, PointF lineEnd)
+        public static float GetDistanceToLineSegment(this PointF point, PointF lineStart, PointF lineEnd)
         {
-            return MathF.Abs(((lineEnd.X - lineStart.X) * (lineStart.Y - point.Y)) - ((lineStart.X - point.X) * (lineEnd.Y - lineStart.Y))) /
-                    MathF.Sqrt(MathF.Pow(lineEnd.X - lineStart.X, 2) + MathF.Pow(lineEnd.Y - lineStart.Y, 2));
+            var lineLenSq = lineStart.GetSquaredDistanceToPoint(lineEnd);
+            if (lineLenSq == 0)
+                return point.GetDistanceToPoint(lineStart);
+
+            var p = point.ToVector2();
+            var v = lineStart.ToVector2();
+            var w = lineEnd.ToVector2();
+
+            var t = MathF.Max(0, MathF.Min(1, Vector2.Dot(p - v, w - v) / lineLenSq));
+            var proj = v + (t * (w - v));
+            return point.GetDistanceToPoint((PointF)proj);
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
         public static PointF GetPointOnCircle(PointF center, float radius, float angle)
         {
             var angleR = angle.ConvertToRadians() + (MathF.PI / 2);
@@ -50,7 +58,6 @@ namespace VectorViewerLibrary.Extensions
                 y: center.Y + (radius * MathF.Cos(angleR)));
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
         public static float GetAngleFromPointOnCircle(PointF center, float radius, PointF point)
         {
             var angle = (MathF.Asin((point.X - center.X) / radius) - (MathF.PI / 2))
@@ -62,46 +69,25 @@ namespace VectorViewerLibrary.Extensions
             return angle;
         }
 
-        [SuppressMessage("Roslynator", "RCS1224:Make method an extension method.", Justification = "Huh?")]
-        public static bool AreSegmentsIntersecting(PointF p1, PointF q1, PointF p2, PointF q2)
+        public static bool AreSegmentsIntersecting(PointF p0, PointF p1, PointF p2, PointF p3)
         {
-            int o1 = Orientation(p1, q1, p2);
-            int o2 = Orientation(p1, q1, q2);
-            int o3 = Orientation(p2, q2, p1);
-            int o4 = Orientation(p2, q2, q1);
+            float p0_x = p0.X;
+            float p0_y = p0.Y;
+            float p1_x = p1.X;
+            float p1_y = p1.Y;
+            float p2_x = p2.X;
+            float p2_y = p2.Y;
+            float p3_x = p3.X;
+            float p3_y = p3.Y;
+            float s1_x, s1_y, s2_x, s2_y;
+            s1_x = p1_x - p0_x; s1_y = p1_y - p0_y;
+            s2_x = p3_x - p2_x; s2_y = p3_y - p2_y;
 
-            int Orientation(PointF p, PointF q, PointF r)
-            {
-                float val = ((q.Y - p.Y) * (r.X - q.X)) -
-                    ((q.X - p.X) * (r.Y - q.Y));
+            float s, t;
+            s = ((-s1_y * (p0_x - p2_x)) + (s1_x * (p0_y - p2_y))) / ((-s2_x * s1_y) + (s1_x * s2_y));
+            t = ((s2_x * (p0_y - p2_y)) - (s2_y * (p0_x - p2_x))) / ((-s2_x * s1_y) + (s1_x * s2_y));
 
-                if (val == 0) return 0; // collinear
-
-                return (val > 0) ? 1 : 2; // clock or counterclock wise
-            }
-
-            if (o1 != o2 && o3 != o4)
-                return true;
-
-            // p1, q1 and p2 are collinear and p2 lies on segment p1q1
-            if (o1 == 0 && IsOnSegment(p1, p2, q1)) return true;
-
-            // p1, q1 and q2 are collinear and q2 lies on segment p1q1
-            if (o2 == 0 && IsOnSegment(p1, q2, q1)) return true;
-
-            // p2, q2 and p1 are collinear and p1 lies on segment p2q2
-            if (o3 == 0 && IsOnSegment(p2, p1, q2)) return true;
-
-            // p2, q2 and q1 are collinear and q1 lies on segment p2q2
-            if (o4 == 0 && IsOnSegment(p2, q1, q2)) return true;
-
-            return false;
-
-            bool IsOnSegment(PointF p, PointF q, PointF r)
-            {
-                return q.X <= MathF.Max(p.X, r.X) && q.X >= MathF.Min(p.X, r.X) &&
-                    q.Y <= MathF.Max(p.Y, r.Y) && q.Y >= MathF.Min(p.Y, r.Y);
-            }
+            return s >= 0 && s <= 1 && t >= 0 && t <= 1;
         }
 
         public static RectangleF GetBoundsRectangle(this PointF[] points)
@@ -114,6 +100,82 @@ namespace VectorViewerLibrary.Extensions
             return new RectangleF(
                 new PointF(xMin, yMin),
                 new SizeF(xMax - xMin, yMax - yMin));
+        }
+
+        internal static PointF GetPointOnLine(PointF a, PointF b, float distFromA)
+        {
+            var dist = a.GetDistanceToPoint(b);
+            return new PointF(
+                x: a.X - (distFromA * (a.X - b.X) / dist),
+                y: a.Y - (distFromA * (a.Y - b.Y) / dist));
+        }
+
+        public static PointF[] GetLineCircleIntersectionPoints(PointF a, PointF b, PointF center, float radius)
+        {
+            a = a.Sub(center);
+            b = b.Sub(center);
+
+            var dx = b.X - a.X;
+            var dy = b.Y - a.Y;
+
+            var dr = MathF.Sqrt(dx * dx + dy * dy);
+            var drSq = dr * dr;
+            var d = a.X * b.Y - a.Y * b.X;
+            var disc = radius * radius * dr * dr - d * d;
+            if (disc < 0)
+                return Array.Empty<PointF>();
+
+            if (disc == 0)
+                return new[] { new PointF(x: d * dy / drSq, y: -d * dx / drSq).Add(center) };
+
+            var discSqrt = MathF.Sqrt(disc);
+            return new[]
+            {
+                new PointF(
+                    x: (d * dy + (dy < 0 ? -1 : 1) * dx * discSqrt) / drSq ,
+                    y: (-d * dx + MathF.Abs(dy) * discSqrt) / drSq)
+                    .Add(center),
+                new PointF(
+                    x: (d * dy - (dy < 0 ? -1 : 1) * dx * discSqrt) / drSq ,
+                    y: (-d * dx - MathF.Abs(dy) * discSqrt) / drSq)
+                    .Add(center)
+            };
+        }
+
+        public static bool IsPointOnLine(this PointF point, PointF a, PointF b)
+        {
+            var dxc = point.X - a.X;
+            var dyc = point.Y - a.Y;
+
+            var dxl = b.X - a.X;
+            var dyl = b.Y - a.Y;
+
+            var cross = dxc * dyl - dyc * dxl;
+
+            if (cross != 0)
+                return false;
+
+            return MathF.Abs(dxl) >= MathF.Abs(dyl)
+                ? dxl > 0
+                    ? a.X <= point.X && point.X <= b.X
+                    : b.X <= point.X && point.X <= a.X
+                : dyl > 0
+                    ? a.Y <= point.Y && point.Y <= b.Y
+                    : b.Y <= point.Y && point.Y <= a.Y;
+        }
+
+        public static PointF Add(this PointF point, PointF offset)
+        {
+            return new PointF(
+                x: point.X + offset.X,
+                y: point.Y + offset.Y);
+        }
+
+        public static PointF Sub(this PointF point, PointF offset)
+        {
+            return new PointF(
+                x: point.X - offset.X,
+                y: point.Y - offset.Y);
         }
     }
 }
